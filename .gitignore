@@ -1,0 +1,34 @@
+*.dat
+*.~in
+*.gpr
+*.$$$
+*.lst
+*.tmp
+*.~gm
+*.log
+*.lxi
+*.~??
+*.gdx
+untitled*.gms
+*.ref
+*.g00
+*.bak
+sav/*.g00
+gdx/*.gdx
+*.orig
+$gms*.par
+*.*zip
+*.gmp
+*.BACKUP
+<<<<<<< HEAD
+result.csv
+=======
+
+*.csv
+~$?.?
+dat/~$*.xlsx
+~$Results*.xlsm
+~$EqVaMatch_v2_3.xlsm
+>>>>>>> 3595cf305dee1a526e46fc8f3afbff2a05ed16ed
+bau_***.gms
+dat/BaseBridge_***_v*.xlsx
