@@ -107,6 +107,7 @@ drate
 popAge
 deprate
 flfp
+flfptot
 aep
 af
 aio
@@ -159,7 +160,11 @@ elecmix
    texpRev
    timpRev
    temiRev
-   /
+ tfpAct
+ savh
+ savEntr
+ ev  
+  /
 
 
 rdim1

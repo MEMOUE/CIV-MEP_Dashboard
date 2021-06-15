@@ -73,6 +73,12 @@ Loop((h,rdim1)$sameas(h,rdim1),
 resCon("%SimName%","yh",rdim1,"(blank)",tt)=oscale*yh.l(h,tt);
 resCon("%SimName%","laby",rdim1,"(blank)",tt)=oscale*sum(l,chil(h,l,tt)*sum(a$aact(a),swage.l(a,l,tt)*xf.l(a,l,tt)));
 resCon("%SimName%","uh",rdim1,"(blank)",tt)=oscale*uh.l(h,tt);
+resCon("%SimName%","savh",rdim1,"(blank)",tt)=oscale*savh.l(h,tt);
+resCon("%SimName%","EV",rdim1,"(blank)",tt)=oscale*ev.l(h,tt);
+);
+
+Loop((entr,rdim1)$sameas(entr,rdim1),
+resCon("%SimName%","saventr",rdim1,"(blank)",tt)=oscale*savEntr.l(entr,tt);
 );
 
 resCon("%SimName%","gini","(blank)","(blank)",tt)=gini.l(tt)*100;
@@ -146,12 +152,12 @@ resCon("%SimName%","xf","aa-srv","tot",tt)=(oscale*sum(fp,sum(a$srv(a),xf.l(a,fp
 resCon("%SimName%","xf","aa-agr","tot",tt)=(oscale*sum(fp,sum(a$agr(a),xf.l(a,fp,tt))));
 resCon("%SimName%","xf","aa-man","tot",tt)=(oscale*sum(fp,sum(a$man(a),xf.l(a,fp,tt))));
 
-
-
 Loop((rdim1,a)$sameas(rdim1,a),
 resCon("%SimName%","rrat",rdim1,"(blank)",tt) = rrat.l(a,tt);
 resCon("%SimName%","xp",rdim1,"(blank)",tt)   = oscale*xp.l(a,tt);
 resCon("%SimName%","pp",rdim1,"(blank)",tt)   = pp.l(a,tt);
+resCon("%SimName%","tfpact",rdim1,"(blank)",tt)= tfpact.l(a,tt);
+
 Loop((rdim2,lnd)$sameas(rdim2,lnd),
 resCon("%SimName%","pland",rdim1,rdim2,tt)= pland.l(a,lnd,tt);
 resCon("%SimName%","pland_pt",rdim1,rdim2,tt)= pland_pt.l(a,lnd,tt);
@@ -294,6 +300,7 @@ resCon("%SimName%","popAge",rdim1,"(blank)",tt)$(ord(tt) ne 1)=popage.l(age,tt);
 
 
 resCon("%SimName%","brateU","(blank)","(blank)",tt)$(ord(tt) ne 1)=brateU.l(tt);
+resCon("%SimName%","FLFPtot","(blank)","(blank)",tt)$(ord(tt) ne 1)=flfptot.l(tt);
 
 Loop((rdim1,cohorts)$sameas(rdim1,cohorts),
 resCon("%SimName%","deprate",rdim1,"(blank)",tt)$(ord(tt) ne 1)=deprate.l(cohorts,tt);

@@ -47,12 +47,20 @@ loop(row,
    dinst(inst)$(not mapinst(row,inst)) = yes ;
 ) ;
 
-set agsima(a)
+set emilow(aa) sectors with low participation to emissions tax
 /
-a-agr
-a-frs
+*a-ely
+*a-chm
+*a-met
+*a-omf
+*a-bph
+a-wtp
+*a-cns
 /
 ;
+
+set f1(f)  government final consumption
+/g-govt/;
 
 alias(k,kp) ; alias(k,kk) ; alias(instp,iinst);
 
@@ -175,7 +183,7 @@ variables
    pkfnnrg(h,k,t)       Price of aggregate non energy demand
    pkfnrg(h,k,t)        Price of aggregate energy demand
    xkfshr(h,k,t)        Budget shares
-
+   EV(h,t)
 *  Other demand variables
 
    xfnnrg(f,t)          Other final demand demand for non energy aggregate
@@ -225,7 +233,8 @@ variables
 
    v_chiLs(l,t)         labor supply shifter variable
    FLFP(l,t)            female labor force participation rate
-   FLFPTot(t)           total female labor
+   FLFPTot(t)           total female labor participation
+   MLFPTot(t)           total male labor participation
 
 *-Demographics
    pop(cohorts,t)       Population
@@ -234,7 +243,7 @@ variables
    awage                Average wage (mcp with unemployed population)
    deprate(cohorts,t)   Dependency ratio by age cohort
    popAge(age,t)        poplulation at each age
-*   brate(l,t)           birth rate
+*   brate(t)           birth rate
    brateU(t)            birth rate
    drate(age,t) death rate
 
@@ -247,6 +256,7 @@ variables
    emiTot(em,t)         Total emissions
    emiOth(em,t)         Exogenous other emissions
    emiGHG(t)            Greenhouse gas emissions
+
    emical(t)            Emission Calibration factor
    emiSecA(em,aa,t)     Emissions by Sector
 
@@ -559,7 +569,7 @@ chikh(h,t)           Share of capital income going to household h
    epsCul(l,t)          elasticity of labor supply shifter to culture index
    culIndex(l,t)        cultural effect index (higher = less women can work)
    chiLambdaL(l,t)      LAbor productivity shifter
-
+   chiLambdaLA(a,l,t)   Activity specific labor productivity shifter
 
 *  Land market parameters
    philand(a,t)     Land technology parameter
@@ -665,8 +675,7 @@ parameter
    yf0
    diagnostics(diag, t)  diagnostic measures about model solve
    emiGHGTarg(t)         emission target
-;;
-
+;
 
 alias(v,vp) ;
 
@@ -773,6 +782,7 @@ equations
    incelasLosseq
    incElasC1eq
    incElasC2eq(h,k,t)
+   EVeq(h,t,t)
 
    xkfnnrgeq(h,k,t)        Aggregate non energy demand
    xkfnrgeq(h,k,t)         Aggregate energy demand
@@ -784,6 +794,7 @@ equations
    xkfshreq(h,k,t)         Budget shares
 
    xfnnrgeq(f,t)           Other final demand demand for non energy bundle
+   xfnnrgeq1(f,t)          Government final demand demand for non energy bundle
    xfnrgeq(f,t)            Other final demand demand for energy bundle
    pfeq(f,t)               Other final demand expenditure deflator
    xafnnrgeq(f,i,t)        Other final demand demand for non energy Armington goods
@@ -829,6 +840,7 @@ equations
    chiLseq(l,t)            social spending effect on labor supply
    FLFPEq(l,t)             Female labor force participation rate by labot type
    FLFPTotEq(t)            Total female labor force participation rate
+   MLFPTotEq(t)            Total male labor force participation rate
 
 *  Land market equilibrium
 

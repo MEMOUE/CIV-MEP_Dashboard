@@ -1,11 +1,7 @@
 
 Parameter
-    rgdpmpSIM(t,sim)
-    xaSIM(i,aa,t,sim)
-    chiPASIM(i,t,sim)
     lambdalSIM(a,l,t,sim)
     chilambdalSIM(l,t,sim)
-    chilambdalASIM(a,l,t,sim)
     lambdatSIM(a,lnd,t,sim)
     rshrGDPSIM(f,t,sim)
     gammapSIM(a,i,t,sim)
@@ -39,8 +35,8 @@ Parameter
 
     xfdsim(oa,t,sim)
 
-    emiGHGSIM(t,sim)
     emiTotSIM(em,t,sim)
+    emiGhgSIM(pollType,t,sim)
     emiSecASIM(em,aa,tt,sim)
     emitaxSIM(em,t,sim)
     chiEmiSIM(em,i,aa,t,sim)
@@ -115,6 +111,7 @@ Parameter
    tPITSIM(h,t,sim)              Personal income tax
    tPIT0SIM(h,t,sim)             Personal income tax base level
    tPITD0SIM(t,sim)              Personal income tax additive adjuster for all dimensions
+   tpitD0ContSIM(h,t,sim)        control for relasing income tax
    tPITD1SIM(h,t,sim)            Personal income tax additive adjuster for household h
    tPITM0SIM(t,sim)              Personal income tax multiplicative adjuster for all dimensions
    tPITM1SIM(h,t,sim)            Personal income tax multiplicative adjuster for household h
@@ -129,7 +126,6 @@ Parameter
    tDrSIM(t,sim)                Personal and Corporate income tax multiplicative adjuster
 
    tPafSIM(i,aa,t,sim)           Agent specific commodity tax
-   PafSIM(i,aa,t,sim)            Agent specific commodity price
    tPaf0SIM(i,aa,t,sim)          Agent specific commodity tax base level
    tPafD0SIM(t,sim)              Agent specific commodity tax additive adjuster for all dimensions
    tPafD1SIM(i,t,sim)            Agent specific commodity tax additive adjuster for commodity i
@@ -138,8 +134,16 @@ Parameter
    tPafM1SIM(i,t,sim)            Agent specific commodity tax multiplicative adjuster for commodity i
    tPafM2SIM(aa,t,sim)           Agent specific commodity tax multiplicative adjuster for agent aa
 
+   uhSIM(h,t,sim)                Household welfare
+   xpSIM(a,t,sim)                Output
+   elecmixSIM(a,t,sim)
+   kdsim(a,v,t,sim)
+   tfpSIM(t,sim)                 TFP
+   kstocksim(t,sim)
 ;
-    rgdpmpSIM(t,sim)               = rgdpmp.l(t)           ;
+
+
+
     savfSIM(t,sim)                 = savf.l(t)             ;
     savgSIM(t,sim)                 = savg.l(t)             ;
     pwmSIM(i,t,sim)                = pwm.l(i,t)            ;
@@ -161,7 +165,6 @@ Parameter
     chilsSIM(l,t,sim)              = 1                     ;
     lambdalSIM(a,l,t,sim)          = lambdal.l(a,l,t)      ;
     chilambdalSIM(l,t,sim)          = chilambdal(l,t)      ;
-    chilambdalASIM(a,l,t,sim)       = chilambdalA(a,l,t)      ;
     lambdatSIM(a,lnd,t,sim)        = lambdat.l(a,lnd,t)        ;
     rshrGDPSIM(f,t,sim)            = rshrGDP.l(f,t)        ;
     rsgSIM(t,sim)                  = rsg.l(t)                 ;
@@ -170,7 +173,6 @@ Parameter
     drateSIM(age,t,sim)            = drate.l(age,t)              ;
     xfdsim(oa,t,sim)               = xfd.l(oa,t)             ;
     tfpActSIM(a,t,sim)             = tfpAct.l(a,t)            ;
-    emiGHGSIM(t,sim)               = emiGHG.l(t)         ;
     emiTotSIM(em,t,sim)            = emiTot.l(em,t)           ;
     emiSecASIM(em,aa,tt,sim)       = emiSecA.l(em,aa,tt)      ;
     lambdaepSIM(a,e,v,t,sim)       = lambdaep.l(a,e,v,t)      ;
@@ -183,8 +185,8 @@ Parameter
     ygSIM(g,t,sim)              = yg.l(g,t)          ;
     ygovSIM(t,sim)              = ygov.l(t) ;
 *-emission target
-    emical.fx(tt) = emical.l(tt) ;
-
+    emical.fx(t) = emical.l(t) ;
+    emiGhgSIM(pollType,t,sim) = emiGhg.l(pollType,t) ;
    tFacSIM(a,fp,t,sim)           = tFac.l(a,fp,t)           ;
    rtFacSIM(a,fp,t,sim)          = rtFac.l(a,fp,t)          ;
    tFac0SIM(a,fp,t,sim)          = tFac0.l(a,fp,t)          ;
@@ -246,6 +248,7 @@ Parameter
    tPITSIM(h,t,sim)              = tPIT.l(h,t)              ;
    tPIT0SIM(h,t,sim)             = tPIT0.l(h,t)             ;
    tPITD0SIM(t,sim)              = tPITD0.l(t)              ;
+   tpitD0ContSIM(h,t,sim)        = tpitD0Cont(h,t)          ;
    tPITD1SIM(h,t,sim)            = tPITD1.l(h,t)            ;
    tPITM0SIM(t,sim)              = tPITM0.l(t)              ;
    tPITM1SIM(h,t,sim)            = tPITM1.l(h,t)            ;
@@ -260,7 +263,6 @@ Parameter
    tDrSIM(t ,sim)                = tDr.l(t )                ;
 
    tPafSIM(i,aa,t,sim)           = tPaf.l(i,aa,t)           ;
-   PafSIM(i,aa,t,sim)            = Paf.l(i,aa,t)           ;
    tPaf0SIM(i,aa,t,sim)          = tPaf0.l(i,aa,t)          ;
    tPafD0SIM(t,sim)              = tPafD0.l(t)              ;
    tPafD1SIM(i,t,sim)            = tPafD1.l(i,t)            ;
@@ -269,48 +271,192 @@ Parameter
    tPafM1SIM(i,t,sim)            = tPafM1.l(i,t)            ;
    tPafM2SIM(aa,t,sim)           = tPafM2.l(aa,t)           ;
 
-   chiPASIM(i,t,sim)           = chiPA(i) ;
-   xaSIM(i,aa,t,sim)           = xa.l(i,aa,t);
+   uhSIM(h,t,sim)                = uh.l(h,t)                ;
+   xpSIM(a,t,sim)                = xp.l(a,t)                ;
+   elecmixSIM(a,t,sim)                = elecmix.l(a,t)      ;
+   kdsim(a,v,t,sim) =    kd.l(a,v,t) ;
+   kstocksim(t,sim) =    kstock.l(t) ;
+   tfpSIM(t,sim) =  tfp.l(t) ;
+
 
 *    emisect(a) = YES ;
-
-*-------------------------------------------------------------------------------
-*--Carbon tax -----------------------------------------------------------------------------
-set aaemi(aa) sectors covered by emission pricing ???
-/
-*set.agr
-*does not run
-*set.man
-*a-ely
-*
-*a-met
-*a-omf
 $ontext
-a-oxt
-a-fod
-a-b_t
-a-tex
-a-wod
-a-bph
-a-gdt
-a-cns
+Current spending on health by gov and HH is 331.9 billion > (47.8 gov't, 284.1 by HHs)             |
+                                                                                                   |
+2019 Gov't budget is 45.8 billion > from the report                                                |
+for full coverage 74.7b is needed w/o optimization, 63.2 b is needed w/ optimization               |
+With 63.6b there would be 46000 DALY averted                                                       |
+Working age population is 2010508 ; employment is 1509236 > then 46000/1509236  = 3.05% increase   |
+in labor productivity.                                                                             |
+Government estimate of UHC cost is 6% of GDP which is 363.5b > also close to SAM total health      |
+spending. If 75b brings 3% productivity gain, 300b should bring 12% productivity gain. however this is an upper bound
+that can be reached in the long term. So we assume 12% will be attained by 2050                    |
+                                                                                                   |
+                                                                                                   |
+                                                                                                   |
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6238021/ : Deaths amenable by UHC is 2995 per year    |
+for Armenia 53% of which is due to low quality services . Population data shows that deaths in     |
+2018 would be 33,195 which is a 9.02% decline in the death rate.
+
+*- Report suggests a 7-8% efficiency improvement is possible in terms of health outcomes
+
+
+
+Average
 
 $offtext
-a-ely
-a-otp
-a-wtp
+
+*-checks on popAge0
+*  tfpActSIM("a-hht",t,"HeaEf")$(years(t)>2019)  = tfpActSIM("a-hht",t,"BaU") *(1+ 0.08 /11* (years(t)-2019) ) ;
+
+set aaemi(aa) sectors covered by emission pricing
+/
+set.man
+*a-wtr
+*a-otp
+*a-wtp
 a-atp
-*a-chm
+*set.aelec
 set.h
 /
 ;
-* shock on real emission rate: er in usd * amount of emi tax * scaling (in basebridge and check if total emissions
-* correspond to actual data in Mega ton)* period to apply the tax
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =  0.555 * 10 * (years(t)-2021)/9 ;
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  0.555 * (10 + 11 * (years(t)-2030)/10) ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*2) * 1e-6)  ;
-  tEmiM1SIM(ema,t,"carbtax") = 0 ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*10) * 1e-6) * ( 1 + (years(t)-2030)/19)  ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2025)  = ((0.555*1.2) * 1e-6)* ( 1 + (years(t)-2025)/5) ;
 
-  emiGHGSIM(t,"carbtax") = emiGHGSIM(t,"BaU") * 0.90 ;
+*  emighgSIM("GHGs",t,"MainTxRed")  = emighg.l("GHGs",t)* (1-0.06*(years(t)-2020)/10);
+
+*-main scenarios
+*  Carbon price coverage   Industry, Wastewater, Transport, Stationary energy
+*  Carbon price rate       10 euro in 2024 increasing to 20 from 2030
+*  Revenue recycling       Cash transfer to bottom 2 household quintiles to make CP impact neutral (amount determined from HH impact assessment)
+*  Exemptions/ subsidies   Remove fossil fuel subsidies Stop electricity consumption tax and SCT on natural gas
+
+  rtEmiSIM(em,aaemi,t,"MainCarTx")$(years(t)>2023)  = 5.5 * 10 * 1e-3 * ( 1 + (years(t)-2023)/7);
+  rtEmiSIM(em,aaemi,t,"MainCarTx")$(years(t)>2030)  = 5.5 * 20 * 1e-3   ;
+
+  tEmiM1SIM(ema,t,"MainCarTx") = 0 ;
+
+  tpitD0ContSIM(h,t,"MainCarTx")$(ord(h)<3 and years(t)>2023) = 1 ;
+
+  rtEmiSIM(em,aaemi,t,"MainColSb")  = rtEmiSIM(em,aaemi,t,"MainCarTx");
+  tEmiM1SIM(ema,t,"MainColSb")    = tEmiM1SIM(ema,t,"MainCarTx")   ;
+  tpitD0ContSIM(h,t,"MainColSb")  = tpitD0ContSIM(h,t,"MainCarTx") ;
+  tPrdM1SIM("a-coa",t,"MainColSb")$(years(t)>2023)  = tPrdM1.l("a-coa",t) *0.175 ;
+
+  rtEmiSIM(em,aaemi,t,"MainFosSb")  = rtEmiSIM(em,aaemi,t,"MainColSb");  ;
+  tEmiM1SIM(ema,t,"MainFosSb")     = tEmiM1SIM(ema,t,"MainColSb")    ;
+  tpitD0ContSIM(h,t,"MainFosSb")   = tpitD0ContSIM(h,t,"MainColSb")  ;
+  tPrdM1SIM("a-coa",t,"MainFosSb") = tPrdM1SIM("a-coa",t,"MainColSb");
+
+*- ngas subsidies is 109 million according to OECD. Tax in SAM is 596K in SAM. Removing subsidy means 180 times increase
+  tPrdM1SIM("a-gas",t,"MainFosSb")$(years(t)>2023)  = tPrdM1.l("a-gas",t)*10 ;
+
+*-oil subsidies are 0.95 billion TL acc to OECD. Tax in SAM is 0.013 billion. Removing subsidy means a 72 times increase
+  tPrdM1SIM("a-oil",t,"MainFosSb")$(years(t)>2023)  = tPrdM1.l("a-oil",t)*5 ;
+
+  rtEmiSIM(em,aaemi,t,"MainTxRed")  = rtEmiSIM(em,aaemi,t,"MainFosSb");
+  tEmiM1SIM(ema,t,"MainTxRed")     = tEmiM1SIM(ema,t,"MainFosSb")    ;
+  tpitD0ContSIM(h,t,"MainTxRed")   = tpitD0ContSIM(h,t,"MainFosSb")  ;
+  tPrdM1SIM(a,t,"MainTxRed") = tPrdM1SIM(a,t,"MainFosSb");
+*-data from Clare
+  tpafM1SIM(ielec,t,"MainTxRed")$(years(t)>2023)  = tpafM1.l(ielec,t)*0.61 ;
+  tpafM1SIM("c-gdt",t,"MainTxRed")$(years(t)>2023)  = tpafM1.l("c-gdt",t)*0.8993 ;
+
+*2 Cmnc Implementation commences 2030
+*  Carbon price coverage        As per main scenario
+*  Carbon price rate            starts 2030 at 10 euro then 20 euro from 2035
+*  Revenue recycling            As per main scenario, in line with commencement
+*  Exemptions/ subsidies        As per main scenario
+
+  rtEmiSIM(em,aaemi,t,"CarTx2030")$(years(t)>2029)  = 5.5 * 10 * 1e-3 * (1 + (years(t)-2030)/5);
+*  rtEmiSIM(em,aaemi,t,"CarTx2030")$(years(t)>2029)  = 5.5 * 20 * 1e-3 ;
+  rtEmiSIM(em,aaemi,t,"CarTx2030")$(years(t)>2035)  = 5.5 * 20 * 1e-3 ;
+
+  tEmiM1SIM(ema,t,"CarTx2030")$(years(t)>2029)     = tEmiM1SIM(ema,t,"MainTxRed")     ;
+  tpitD0ContSIM(h,t,"CarTx2030")$(years(t)>2029)   = tpitD0ContSIM(h,t,"MainTxRed")   ;
+  tPrdM1SIM(a,t,"CarTx2030")$(years(t)>2029) = tPrdM1SIM(a,t,"MainTxRed") ;
+  tpafM1SIM(i,t,"CarTx2030")$(years(t)>2029) = tpafM1SIM(i,t,"MainTxRed") ;
+
+
+
+set scn3(sim)
+/
+GovntSave
+DebtPaymt
+GovntInvt
+/
+;
+*3 NRcy No revenue recycling
+*  Carbon price coverage        As per main scenario
+*  Carbon price rate            As per main scenario
+*  Revenue recycling            (a) Govt savings or (b) debt repayment or (c) investment
+*  Exemptions/ subsidies        As per main scenario
+
+  rtEmiSIM(em,aaemi,t,scn3)  = rtEmiSIM(em,aaemi,t,"MainTxRed");
+  tEmiM1SIM(ema,t,scn3) = tEmiM1SIM(ema,t,"MainTxRed") ;
+  tpitD0ContSIM(h,t,scn3) =  tpitD0ContSIM(h,t,"MainTxRed") ;
+  tPrdM1SIM(a,tt,scn3) = tPrdM1SIM(a,tt,"MainTxRed") ;
+  tpafM1SIM(i,tt,scn3) = tpafM1SIM(i,tt,"MainTxRed") ;
+
+
+*4 IRcy Revenue recycled as income tax reduction
+*  Carbon price coverage        As per main scenario
+*  Carbon price rate            As per main scenario
+*  Revenue recycling            HH transfers from main scenario plus remaining revenue generated to income tax reduction.
+*  Exemptions/ subsidies        As per main scenario
+  rtEmiSIM(em,aaemi,t,"FacTxRcyl")  = rtEmiSIM(em,aaemi,t,"MainTxRed");
+
+  tEmiM1SIM(ema,t,"FacTxRcyl") = tEmiM1SIM(ema,t,"MainTxRed") ;
+
+  tpitD0ContSIM(h,t,"FacTxRcyl") =  0;
+  tPrdM1SIM(a,tt,"FacTxRcyl") = tprdM1SIM(a,tt,"MainTxRed") ;
+  tpafM1SIM(i,tt,"FacTxRcyl") = tpafM1SIM(i,tt,"MainTxRed") ;
+
+
+*6 High Higher carbon price
+*  Carbon price coverage        As per main scenario
+*  Carbon price rate            Forecast EU ETS price from 2024
+*  Revenue recycling            As per main scenario
+*  Exemptions/ subsidies        As per main scenario
+
+    rtEmiSIM(em,aaemi,t,"HighCarTx")$(years(t)>2023)  = 5.5 * 1e-3 * (10 + (years(t)-2023)*100/17);
+*    rtEmiSIM(em,aaemi,t,"HighCarTx")$(years(t)>2030)  =   rtEmiSIM(em,aaemi,"2030","HighCarTx") +  5.5 * 1e-3 * (years(t)-2030)*18/10 ;
+
+  tEmiM1SIM(ema,t,"HighCarTx") = tEmiM1SIM(ema,t,"MainTxRed") ;
+
+  tpitD0ContSIM(h,t,"HighCarTx") =  tpitD0ContSIM(h,t,"MainTxRed") ;
+  tPrdM1SIM(a,tt,"HighCarTx") = tprdM1SIM(a,tt,"MainTxRed") ;
+  tpafM1SIM(i,tt,"HighCarTx") = tpafM1SIM(i,tt,"MainTxRed") ;
+
+
+*7 NNrg Stationary energy excluded from coverage
+*  Carbon price coverage        Industry, Wastewater, Transport
+*  Carbon price rate            As per main scenario
+*  Revenue recycling            As per main scenario
+*  Exemptions/ subsidies        As per main scenario
+
+  rtEmiSIM(em,aaemi,t,"NrgExclud")  = rtEmiSIM(em,aaemi,t,"MainTxRed");
+
+  rtEmiSIM(em,aelec,t,"NrgExclud") = 0;
+
+  tEmiM1SIM(ema,t,"NrgExclud") = tEmiM1SIM(ema,t,"MainTxRed") ;
+
+  tpitD0ContSIM(h,t,"NrgExclud") =  tpitD0ContSIM(h,t,"MainTxRed") ;
+  tPrdM1SIM(a,tt,"NrgExclud") = tprdM1SIM(a,tt,"MainTxRed") ;
+  tpafM1SIM(i,tt,"NrgExclud") = tpafM1SIM(i,tt,"MainTxRed") ;
+
+
+*8 NSub No subsidy reform
+*  Carbon price coverage        As per main scenario
+*  Carbon price rate            As per main scenario
+*  Revenue recycling            As per main scenario
+*  Exemptions/ subsidies        No subsidy reform
+
+*  tEmiD2SIM(aaemi,t,"scn8")$(years(t)>2023)  = tEmiD2SIM(aaemi,t,"MainTxRed") ;*
+
+*  tEmiM1SIM(ema,t,"scn8") = tEmiM1SIM(ema,t,"MainTxRed") ;
+*  tpitD0ContSIM(h,t,"scn8") =  tpitD0ContSIM(h,t,"MainTxRed") ;
+
+*-productivity shock
+tfpSIM(t,"TotFacPro") =  tfpSIM(t,"bau") *0.99 ;
+lambdakSIM(a,v,t,"CapitlPro") = lambdakSIM(a,v,t,"BaU") *0.99 ;
+
+kstocksim(t,"CapStoDes") = kstocksim(t,"CapitlPro")*0.99 ;

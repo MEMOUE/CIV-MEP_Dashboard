@@ -3,37 +3,12 @@ $offsymlist
 $offsymxref
 
 * put simulation name here
-*$setGlobal SimName  "Agri25"
-$setGlobal SimName  "DemD30"
-*$setGlobal SimName  "Combine"
-***$setGlobal SimName  "LabPR"
-***$setGlobal SimName  "HeaEf"
+$setGlobal SimName  "carbtax"
 
 $setGlobal shkFile %SimName%
 
 *-Change here if two different sims use the same shock file
-*$ifi %SimName% == "Agrisim" $setglobal shkFile "sim1"
-$ifi %SimName% == "Agri00" $setglobal shkFile "simAgr"
-$ifi %SimName% == "Agri10" $setglobal shkFile "simAgr"
-$ifi %SimName% == "Agri15" $setglobal shkFile "simAgr"
-$ifi %SimName% == "Agri20" $setglobal shkFile "simAgr"
-$ifi %SimName% == "Agri25" $setglobal shkFile "simAgr"
-$ifi %SimName% == "Agri30" $setglobal shkFile "simAgr"
-$ifi %SimName% == "Agri35" $setglobal shkFile "simAgr"
-
-$ifi %SimName% == "DemD05" $setglobal shkFile "simDD"
-$ifi %SimName% == "DemD10" $setglobal shkFile "simDD"
-$ifi %SimName% == "DemD20" $setglobal shkFile "simDD"
-$ifi %SimName% == "DemD30" $setglobal shkFile "simDD"
-$ifi %SimName% == "De05NC" $setglobal shkFile "simDD"
-$ifi %SimName% == "De10NC" $setglobal shkFile "simDD"
-$ifi %SimName% == "De20NC" $setglobal shkFile "simDD"
-$ifi %SimName% == "De30NC" $setglobal shkFile "simDD"
-
-$ifi %SimName% == "Combine" $setglobal shkFile "simComb"
-
-$ifi %SimName% == "LabPR" $setglobal shkFile "sim"
-$ifi %SimName% == "HeaEf" $setglobal shkFile "sim"
+$ifi %SimName% == "carbtax" $setglobal shkFile "simEmi"
 
 $setGlobal oDir     ".\res"
 $setGlobal incF     ".\inc"
@@ -50,7 +25,7 @@ scalar ifCal / 0 / ;
 
 $setGlobal inBaUGDX  "%odir%\BaU.gdx"
 
-$setglobal BridgeFile BaseBridge_v1.xlsx
+$setglobal BridgeFile BaseBridge_v2.xlsx
 
 $include "%incF%\dynamDef.inc"
 
@@ -61,27 +36,33 @@ $include "%incF%\reportDecl.inc"
 *incelas.fx(h,k,t) = incelas.l(h,k,t) ;
 
 
-set tshock(t) years shocks are affective /2020*2050/;
+*set tshock(t) years shocks are affective /2022*2050/;
+set tshock(t) years shocks are affective /2022*2040/;
+
+set iter /1*4/ ;
+Parameter iterNum(iter) ;
+
+iterNum(iter) = ord(iter) ;
 
 $include %simF%\shkcalc.inc
 
 
 
-loop(tt$(years(tt) le 2050),
-*loop(tt$(years(tt) le 2020),
+*loop(tt$(years(tt) le 2050),
+loop(tt$(years(tt) le 2040),
 
    if (ord(tt) gt 1,
 
       ts(tt) = yes ;
 
 *     Ignore BaU
-      $$batinclude '%incF%\iterloop.inc' 2016
+      $$batinclude '%incF%\iterloop.inc' 2018
 
 $include %simF%\shk_%shkFile%.inc
 
       options limrow=0, limcol=0 ;
-      options solprint=off ;
-      options iterlim=100000 ;
+*      options solprint=off ;
+      options iterlim=100 ;
 
 *if(years(tt)=2018,
 if(0,
@@ -90,8 +71,29 @@ if(0,
       options iterlim=10000 ;
 );
 *      cge.optFile = 5 ;
-      cge.optFile = 6 ;
+      cge.optFile = 2 ;
       solve cge using mcp ;
+
+*$ontext
+*- this is to find the correct opt file
+    Loop(iter,
+       if(cge.solvestat = 2 OR cge.solvestat = 3 ,
+
+          put_utility 'log' // "Trying different opt files for the year ", tt.tl, "opt file=", iterNum(iter) ;
+          put screen ;
+          put // "Trying different opt files for the year ", tt.tl, "opt file=", iter.tl ;
+          putclose;
+          $$include %incF%\resLastYear.inc
+          cge.optFile = iterNum(iter) ;
+          options solprint=off ;
+          options limrow=3, limcol=0 ;
+          solve cge using mcp ;
+          if(cge.solvestat = 1,
+*          optfile(tt) = iterNum(iter)
+             );
+          );
+        );
+*$offtext
 
       diagnostics("modStatus",ts) = cge.modelstat ;
       diagnostics("solStatus",ts) = cge.solvestat ;

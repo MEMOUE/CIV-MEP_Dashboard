@@ -289,6 +289,7 @@ resCon("%SimName%","popAge",rdim1,"(blank)",tt)$(ord(tt) ne 1)=popage.l(age,tt);
 
 
 resCon("%SimName%","brateU","(blank)","(blank)",tt)$(ord(tt) ne 1)=brateU.l(tt);
+resCon("%SimName%","flfptot","(blank)","(blank)",tt)$(ord(tt) ne 1)=FLFPTot.l(tt);
 
 Loop((rdim1,cohorts)$sameas(rdim1,cohorts),
 resCon("%SimName%","deprate",rdim1,"(blank)",tt)$(ord(tt) ne 1)=deprate.l(cohorts,tt);

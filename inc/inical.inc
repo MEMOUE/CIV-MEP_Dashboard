@@ -229,7 +229,7 @@ yh.l(h,t)   = sum(lnd, sam(h, lnd)) + sum(l, sam(h,l)) + sum(cap, sam(h,cap))
             + sum((instp,inst)$mapinst(h,instp), transfers.l(instp, inst,t))
             +  SUM(instd$mapinst(h,instd),debtPay.l(instd,t)) ;
 
-gini.l(t)  = 2 * sum(h,ord(h) * yh.l(h,t))/(card(h)*sum(h,yh.l(h,t))) - (card(h)+1)/card(h) ; 
+gini.l(t)  = 2 * sum(h,ord(h) * yh.l(h,t))/(card(h)*sum(h,yh.l(h,t))) - (card(h)+1)/card(h) ;
 
 savh.l(h,t) = sum(inv, sam(inv,h)) ;
 
@@ -637,6 +637,11 @@ yg.l("dtx",t) = sum(h, tpit.l(h,t)*yh.l(h,t)) + sum(entr, tcit.l(entr,t)*entrY.l
 
 yg.l("atx",t) = sum((i,aa), tpaf.l(i,aa,t)*pa.l(i,t)*xa.l(i,aa,t)) ;
 
+yg.l("ftx",t) = sum(a, sum(lnd,tFac.l(a,lnd,t) * pland.l(a,lnd,t)*xf.l(a,lnd,t))
+                       + sum(l,tFac.l(a,l,t) * swage.l(a,l,t)*xf.l(a,l,t))
+                       + sum((v,cap),tFac.l(a,cap,t) * pk.l(a,v,t)*kd.l(a,v,t)))   ;
+
+
 *Calvin modification toaccount for natural resosurce remunerations payments to government
 ygov.l(t)     = sum((is,gov), sam(gov,is)) ;
 *ygov.l(t)     = sum((is,gov), sam(gov,is)) + sum((gov,lnd), sam(gov,lnd)) ;
@@ -687,17 +692,20 @@ loop(t0,
 
 popAge.l(age,t) =popAge0(t,age) ;
 
-brateU.fx(t) = popAge.l("age000",t)/pop.l("P1564",t) ;
+ FLFP.l(fl,t) = lsT.l(fl,t)/pop.l("p1564",t)*3 ;
+*lmb modif
+* FLFPTot.l(t) = SUM(fl,FLFP.l(fl,t));
+ FLFPTot.l(t) = SUM(l$(not ml(l)),lsT.l(l,t))/pop.l("p1564",t)*3.1;
+ MLFPTot.l(t) = SUM(l$(ml(l)),lsT.l(l,t))/pop.l("p1564",t)*1.15;
 
+brateU.fx(t) = popAge.l("age000",t)/pop.l("P1564",t) ;
+brateScale(t)= brateU.l(t);
+*Brate.l(t)  =   brateU.l(t);
+*brate.l(t)$(ord(t)>1)  =  brateU.l(t)* ((FLFPTot.l(t-1)/FLFPTot.l(t))**0.001);
 
 drate.fx(age,t)$(ord(t)>1 AND ord(age)>1) =  popAge.l(age,t) / popAge.l(age-1,t-1) ;
 
 popAge.fx(age,t0) = popAge.l(age,t0) ;
-
- FLFP.l(fl,t) = lsT.l(fl,t)/pop.l("p1564",t)*2 ;
- FLFPTot.l(t) = SUM(fl,FLFP.l(fl,t));
-
-
 
 ptland.l(lnd,t) = 1 ;
 ptland.l(lnd,t)$ifLand = sum(a, pland_pt.l(a,lnd,t)*xf.l(a,lnd,t)) / tland.l(lnd,t) ;
@@ -761,15 +769,18 @@ tfpAct.fx(a,t) = 1   ;
 * ----------------------------------------------------------------------------
 
 epsEdu(l,t) = 0;
-*epsEdu(l,t) = 0.01464;
-*epsHea(fl,t) = 0.02571 ;
-*epsHea(fl,t) = 0.5 ;
-epsHea(fl,t) = 0 ;
+epsEdu(l,t)$(not ml(l)) = 0.01464;
+epsEdu(l,t)$(ml(l))     = 0.01464/2;
+epsHea(l,t) = 0 ;
+epsHea(l,t)$(not ml(l)) = 0.02571 ;
+epsHea(l,t)$(ml(l))     = 0.02571/2 ;
+**epsHea(fl,t) = 0.5 ;
 epsCul(fl,t) = 0.0 ;
 
 culIndex(l,t) = 1 ;
 
 chiLambdaL(l,t)  = 1;
+chiLambdaLA(a,l,t)  = 1;
 
 * ----------------------------------------------------------------------------
 *
@@ -1427,3 +1438,17 @@ rhodmg(t) = 0.1;
    dmgShftChie.fx(t)$(NOT ifDmg)       = 1;
    dmgShftLambdaEh.fx(t)$(NOT ifDmg)   = 1;
    dmgShftDepr.fx(t)$(NOT ifDmg)       = 1;
+
+parameter
+shra(a)  share of ag sub sector in aggregate sector output in sam
+;
+shra(a) = 0;
+shra('a-agr') = 0.917187897;
+shra('a-frs') = 1- shra('a-agr');
+
+loop(t0,
+EV.l(H,T) = PROD[k,(pkf.l(h,k,t0)/pkf.l(h,k,t))**xkfshr.l(h,k,t)] * [yf.l(h,t)-yf.l(h,t0)] ;
+*EV.l(H,T) = 1;
+*EV.l(H,T) = PROD[k,(pkf.l(h,k,t)/pkf.l(h,k,t))**xkfshr.l(h,k,t)] * [yf.l(h,t)-yf.l(h,t)] ;
+);
+

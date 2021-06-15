@@ -219,10 +219,21 @@ ginieq(t)$ts(t)..
 deprateEq(cohorts,t)$ts(t).. deprate(cohorts,t) =e= pop(cohorts,t)/pop("P1564",t) ;
 
 *  Y-4 -- Average propensity to save
+$ontext
+Cruz, Marcio; Ahmed, S. Amer. 2016. 
+Based on the GMM method with several co-variates, it is estimated that an increase of 1 percentage point in the share of working-age population
+is associated with an increase of 0.78 percentage point in domestic savings as a share of the gross national income (GNI).
+Ahmed, S. Amer; Cruz, Marcio; Go, Delfin S.; Maliszewska, Maryla; Osorio-Rodarte, Israel. 2014. 
+Parameters for Savings as a Share of GDP Function in LINKAGE:
+                            High income country   LIC
+Youth dependency ratio     -0.068                  -0.279
+Elderly dependency ratio   -0.218                  -1.37
+$offtext
 apseq(h,t)$ts(t)..
    aps(h,t) =e= chims(t)*aps0(h)
-             + sign(aps(h,t-1))*aps(h,t-1)*((deprate("P65UP",t)/deprate("P65UP",t-1))**(-6.25)
-               *(deprate("PLT15",t)/deprate("PLT15",t-1))**(-6.71)-1)
+*             + sign(aps(h,t-1))*aps(h,t-1)*((deprate("P65UP",t)/deprate("P65UP",t-1))**(-7.8)
+*               *(deprate("PLT15",t)/deprate("PLT15",t-1))**(-7.8)-1)
+
                ;
 
 *  Y-5 -- Total household transfers
@@ -396,7 +407,18 @@ inveq(inv,t)$ts(t)..
 
 BirthEq(t)$ts(t)..
                 popAge("age000",t) =e=  brateU(t) * pop("P1564",t-1);
+*                popAge("age000",t) =e=  brate(t) * pop("P1564",t-1);
+*_______________________________________________________________________________
+*lmb
+*brateEq(t)$(ts(t))..
+*         brate(t)  =e=  brateU(t);
+                                         ;
+*         brate(t)  =e=  brateU(t)* [1-[((FLFPTot(t)/FLFPTot(t-1))**0.01)
+*         brate(t)  =e=  brateU(t)* [1-((SUM((aasoc,ihea),xa(ihea,aasoc,t))/SUM((aasoc,ihea),xa(ihea,aasoc,t-1)))**0.01)
 
+*                 *(1$(ord(t)<11) +((SUM((aasoc,iedu),xa(iedu,aasoc,t-9))
+*                   /SUM((aasoc,iedu),xa(iedu,aasoc,t-10)))**epsEdu(l,t))$(ord(t)>10)]];
+*_______________________________________________________________________________
 popAgeEq(age,t)$(ts(t) AND ord(age)>1 AND ord(t)>1)..
                 popAge(age,t) =e= popAge(age-1,t-1)*drate(age,t);
 
@@ -478,6 +500,9 @@ apeeq(h,k,kp,t)$(ts(t) and akfact(h,k) and akfact(h,kp) and ifCDE)..
    ape(h,k,kp,t) =e= (1-bh(h,k,t))*(1-kron(k,kp)/xkfshr(h,kp,t)) - bh(h,kp,t)
                   +  sum(kk, xkfshr(h,kk,t)*bh(h,kk,t)) ;
 
+*Welfare in Equivalent Variation, in proportion of the initial net income
+EVeq(h,t,t0)$ts(t)..
+                 EV(H,T) =E= PROD[k,(pkf(h,k,t0)/pkf(h,k,t))**xkfshr(h,k,t)] * [yf(h,t)-yf(h,t0)] ;
 * ----------------------------------------------------------------------------
 *
 *  Transformation of household demand for good k into demand for produced goods
@@ -556,11 +581,15 @@ pfeq(f,t)$(yf0(f,t) AND ts(t))..
 *  Decomposition of non-energy bundles
 
 *  D-15 -- Armington final demand for non energy goods
-
-xafnnrgeq(f,in,t)$(ts(t) and xaact(in, f))..
+*lmb____________________________________________________________________________
+ xafnnrgeq(f,in,t)$(ts(t) and xaact(in, f))..
+* xafnnrgeq(f,in,t)$(ts(t) and xaact(in, f) and not f1(f))..
    xa(in,f,t) =e= aff(f,in,t)*xfnnrg(f,t)
                * (pfnnrg(f,t)/(chiPA(in)*paf(in,f,t)))**sigmafaa(f) ;
 
+xfnnrgeq1(f,t)$(ts(t) and afnnrg(f,t) ne 0 and f1(f))..
+   xfnnrg(f,t) =e= sum(in,xa(in,f,t)*(chiPA(in)*paf(in,f,t)))/ pfnnrg(f,t);
+*_______________________________________________________________________________
 *  Decomposition of energy bundles
 
 *  D-16 -- Armington final demand for energy goods
@@ -780,17 +809,21 @@ lsTeq(l,t)$ts(t)..
 
 
 *  Gender differential in labor supply
-FLFPeq(fl,t)$ts(t)..  FLFP(fl,t) =e= lsT(fl,t)/pop("p1564",t)*2 ;
-FLFPTotEq(t)$ts(t)..  FLFPTot(t) =e= SUM(fl,FLFP(fl,t));
+FLFPeq(fl,t)$ts(t)..  FLFP(fl,t) =e= lsT(fl,t)/pop("p1564",t)*3 ;
+*lmb modif _____________________________________________________________________
+*FLFPTotEq(t)$ts(t)..  FLFPTot(t) =e= SUM(fl,FLFP(fl,t));
+FLFPTotEq(t)$ts(t)..  FLFPTot(t) =e= SUM(l$(not ml(l)),lsT(l,t))/pop("p1564",t)*3.1;
 
+MLFPTotEq(t)$ts(t)..  MLFPTot(t) =e= SUM(l$(ml(l)),lsT(l,t))/pop("p1564",t)*1.15;
+*_______________________________________________________________________________
 chiLseq(l,t)$ts(t) ..
 v_chiLs(l,t) =e=  1
-*lmb: put a star here before the cuntural index
-                 *(culIndex(l,t)/culIndex(l,t-1))**epsCul(l,t)
-                  *((SUM((aasoc,ihea),xa(ihea,aasoc,t))
-                   /SUM((aasoc,ihea),xa(ihea,aasoc,t-1)))**epsHea(l,t))
-                  *(1$(ord(t)<11) +((SUM((aasoc,iedu),xa(iedu,aasoc,t-9))
-                   /SUM((aasoc,iedu),xa(iedu,aasoc,t-10)))**epsEdu(l,t))$(ord(t)>10))
+*lmb: put a star here before the cultural index
+*                 *(culIndex(l,t)/culIndex(l,t-1))**epsCul(l,t)
+*                 *((SUM((aasoc,ihea),xa(ihea,aasoc,t))
+*                   /SUM((aasoc,ihea),xa(ihea,aasoc,t-1)))**epsHea(l,t))
+*                  *(1$(ord(t)<11) +((SUM((aasoc,iedu),xa(iedu,aasoc,t-9))
+*                   /SUM((aasoc,iedu),xa(iedu,aasoc,t-10)))**epsEdu(l,t))$(ord(t)>10))
                   * (v_chiLs(l,t-1)*pop("p1564",t)/pop("p1564",t-1));
 
 *  L-2 -- Sectoral labor supply
@@ -1222,13 +1255,12 @@ kapseq(t,t0)$(ts(t) and not ifComp)..
 *lambdaleq(a,l,t)$(ts(t) and acal(a) and ifCal eq 1)..
 
 lambdaleq(a,l,t,t0)$(ts(t))..
-   lambdal(a,l,t) =e= chiLambdaL(l,t) * [lambdal(a,l,t0)
-                  * ((SUM((aasoc,ihea),xa(ihea,aasoc,t))
-                  / SUM((aasoc,ihea),xa(ihea,aasoc,t0)))**epsHea(l,t))
-*   ]
-                  * (1$(ord(t)<11) +((SUM((aasoc,iedu),xa(iedu,aasoc,t-9))
-                  / SUM((aasoc,iedu),xa(iedu,aasoc,t-10)))**epsEdu(l,t))$(ord(t)>10))]
-                   ;
+   lambdal(a,l,t) =e= (chiLambdaLA(a,l,t)*chiLambdaL(l,t)) * [lambdal(a,l,t0)
+*                  * ((SUM((aasoc,ihea),xa(ihea,aasoc,t))
+*                  / SUM((aasoc,ihea),xa(ihea,aasoc,t0)))**epsHea(l,t))
+*                  * (1$(ord(t)<11) +((SUM((aasoc,iedu),xa(iedu,aasoc,t-9))
+*                  / SUM((aasoc,iedu),xa(iedu,aasoc,t-10)))**epsEdu(l,t))$(ord(t)>10))
+                  ] ;
 
 awageEq(t)$ts(t)..
     awage(t)*sum(l,lsT(l,t)) =e= sum(l,wage(l,t)*lsT(l,t)) ;
@@ -1260,10 +1292,11 @@ model cge /
    dtransferseq, rowtransferseq, inveq,
    popAgeEq, BirthEq, popEq ,
 *   brateEq,
-   hpopeq, consScaleeq, xkfeq, uheq, xkfshreq, pfheq,
+   hpopeq, consScaleeq, xkfeq, uheq, xkfshreq, pfheq,EVeq,
    xkfnnrgeq, xkfnrgeq, pkfeq, xakfnnrgeq, xakfnrgeq, pkfnnrgeq, pkfnrgeq,
 
-   xfnnrgeq, xfnrgeq, pfeq, xafnnrgeq, xafnrgeq, pfnnrgeq, pfnrgeq,
+   xfnnrgeq, xfnrgeq, pfeq, xafnnrgeq,xafnrgeq, pfnnrgeq, pfnrgeq,
+*   xfnnrgeq1,
 
    xmargeq, xamrgeq, pmargeq, yfeq,
 
@@ -1271,7 +1304,7 @@ model cge /
    pseq, xdseq, edseq, peeq,
    pweeq, pwmeq,
 
-   lsTeq, lseq, wageeq, pswageeq, swageeq, chiLseq,  FLFPeq , FLFPTotEq ,
+   lsTeq, lseq, wageeq, pswageeq, swageeq, chiLseq,  FLFPeq , FLFPTotEq ,MLFPTotEq ,
 *Calvin modification to modelise the exegenous carracte of natural resosurce
    tlandeq,
 

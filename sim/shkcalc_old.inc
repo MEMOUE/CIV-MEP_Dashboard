@@ -1,11 +1,9 @@
 
 Parameter
-    rgdpmpSIM(t,sim)
     xaSIM(i,aa,t,sim)
     chiPASIM(i,t,sim)
     lambdalSIM(a,l,t,sim)
     chilambdalSIM(l,t,sim)
-    chilambdalASIM(a,l,t,sim)
     lambdatSIM(a,lnd,t,sim)
     rshrGDPSIM(f,t,sim)
     gammapSIM(a,i,t,sim)
@@ -39,7 +37,6 @@ Parameter
 
     xfdsim(oa,t,sim)
 
-    emiGHGSIM(t,sim)
     emiTotSIM(em,t,sim)
     emiSecASIM(em,aa,tt,sim)
     emitaxSIM(em,t,sim)
@@ -139,7 +136,7 @@ Parameter
    tPafM2SIM(aa,t,sim)           Agent specific commodity tax multiplicative adjuster for agent aa
 
 ;
-    rgdpmpSIM(t,sim)               = rgdpmp.l(t)           ;
+
     savfSIM(t,sim)                 = savf.l(t)             ;
     savgSIM(t,sim)                 = savg.l(t)             ;
     pwmSIM(i,t,sim)                = pwm.l(i,t)            ;
@@ -161,7 +158,6 @@ Parameter
     chilsSIM(l,t,sim)              = 1                     ;
     lambdalSIM(a,l,t,sim)          = lambdal.l(a,l,t)      ;
     chilambdalSIM(l,t,sim)          = chilambdal(l,t)      ;
-    chilambdalASIM(a,l,t,sim)       = chilambdalA(a,l,t)      ;
     lambdatSIM(a,lnd,t,sim)        = lambdat.l(a,lnd,t)        ;
     rshrGDPSIM(f,t,sim)            = rshrGDP.l(f,t)        ;
     rsgSIM(t,sim)                  = rsg.l(t)                 ;
@@ -170,7 +166,6 @@ Parameter
     drateSIM(age,t,sim)            = drate.l(age,t)              ;
     xfdsim(oa,t,sim)               = xfd.l(oa,t)             ;
     tfpActSIM(a,t,sim)             = tfpAct.l(a,t)            ;
-    emiGHGSIM(t,sim)               = emiGHG.l(t)         ;
     emiTotSIM(em,t,sim)            = emiTot.l(em,t)           ;
     emiSecASIM(em,aa,tt,sim)       = emiSecA.l(em,aa,tt)      ;
     lambdaepSIM(a,e,v,t,sim)       = lambdaep.l(a,e,v,t)      ;
@@ -274,43 +269,94 @@ Parameter
 
 *    emisect(a) = YES ;
 
+*lmb trial Closing the gender gap Benin
 *-------------------------------------------------------------------------------
-*--Carbon tax -----------------------------------------------------------------------------
-set aaemi(aa) sectors covered by emission pricing ???
+*- Agriculture -----------------------------------------------------------------
+*-------------------------------------------------------------------------------
+set agrisim(sim)
 /
-*set.agr
-*does not run
-*set.man
-*a-ely
-*
-*a-met
-*a-omf
-$ontext
-a-oxt
-a-fod
-a-b_t
-a-tex
-a-wod
-a-bph
-a-gdt
-a-cns
-
-$offtext
-a-ely
-a-otp
-a-wtp
-a-atp
-*a-chm
-set.h
+Agri10
+Agri20
 /
 ;
-* shock on real emission rate: er in usd * amount of emi tax * scaling (in basebridge and check if total emissions
-* correspond to actual data in Mega ton)* period to apply the tax
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =  0.555 * 10 * (years(t)-2021)/9 ;
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  0.555 * (10 + 11 * (years(t)-2030)/10) ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*2) * 1e-6)  ;
-  tEmiM1SIM(ema,t,"carbtax") = 0 ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*10) * 1e-6) * ( 1 + (years(t)-2030)/19)  ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2025)  = ((0.555*1.2) * 1e-6)* ( 1 + (years(t)-2025)/5) ;
 
-  emiGHGSIM(t,"carbtax") = emiGHGSIM(t,"BaU") * 0.90 ;
+tfpActSIM(agsima,t,"Agri10")$(tshock(t) AND years(t) < 2031) = tfpActSIM(agsima,t,"BaU")*[1 + 0.19/2*shra(agsima)]**[1/(2031-2022)];
+tfpActSIM(agsima,t,"Agri20")$(tshock(t) AND years(t) < 2031) = tfpActSIM(agsima,t,"BaU")*[1 + 0.19 *shra(agsima)]**[1/(2031-2022)];
+
+xfdsim(ginv,t,"Agri10")$(tshock(t) AND years(t) < 2031)  = xfdsim(ginv,t,"BaU")*(1+0.062/2)**[1/(2031-2022)];
+xfdsim(ginv,t,"Agri20")$(tshock(t) AND years(t) < 2031)  = xfdsim(ginv,t,"BaU")*(1+0.062)  **[1/(2031-2022)];
+
+tfpActSIM(agsima,t,agrisim)$(tshock(t) AND years(t)>2030) =  tfpActSIM(agsima,"2030",agrisim);
+xfdsim(ginv,t,agrisim)$(tshock(t) AND years(t)>2030)      =  xfdsim(ginv,"2030",agrisim) ;
+*-------------------------------------------------------------------------------
+*- Demographic dividend  -------------------------------------------------------
+*-------------------------------------------------------------------------------
+set demsim(sim)
+/
+DemD10
+DemD20
+/
+;
+
+*increasing expenditure on health and education via higher government consumption
+xaSIM(ihea,f,t,sim)$f1(f) = xaSIM(ihea,f,t,"bau");
+* low fertility rate
+xaSIM(ihea,f,t,"DemD20")$[tshock(t) and f1(f) AND years(t) < 2031] = xaSIM(ihea,f,t,'BAU')*(1+1.5*((years(t)-2021)/9));
+xaSIM(iedu,f,t,"DemD20")$[tshock(t) and f1(f) AND years(t) < 2031] = xaSIM(iedu,f,t,'BAU')*(1+1.5*((years(t)-2021)/9));
+* medium fertility rate
+xaSIM(ihea,f,t,"DemD10")$[tshock(t) and f1(f) AND years(t) < 2031] = xaSIM(ihea,f,t,'BAU')*(1+1.5/2*((years(t)-2021)/9));
+xaSIM(iedu,f,t,"DemD10")$[tshock(t) and f1(f) AND years(t) < 2031] = xaSIM(iedu,f,t,'BAU')*(1+1.5/2*((years(t)-2021)/9));
+
+*xaSIM(ihea,f,t,demsim)$[tshock(t) and f1(f) AND years(t) > 2030] = xaSIM(ihea,f,'2030',demsim);
+*xaSIM(iedu,f,t,demsim)$[tshock(t) and f1(f) AND years(t) > 2030] = xaSIM(iedu,f,'2030',demsim);
+
+xaSIM(ihea,f,t,demsim)$[tshock(t) and f1(f) AND years(t) > 2030] = xaSIM(ihea,f,t-1,demsim)*(1+ggdppc.l(t));
+xaSIM(iedu,f,t,demsim)$[tshock(t) and f1(f) AND years(t) > 2030] = xaSIM(iedu,f,t-1,demsim)*(1+ggdppc.l(t));
+
+
+* via consumption price subsidies
+tPaf0SIM(ihea,aasoc,t,"DemD10")$tshock(t) = -0.01 **[1/(2031-2022)] ;
+tPaf0SIM(iedu,aasoc,t,"DemD10")$tshock(t) = -0.01 **[1/(2031-2022)] ;
+tPaf0SIM(ihea,aasoc,t,"DemD20")$tshock(t) = -0.0002 **[1/(2031-2022)] ;
+tPaf0SIM(iedu,aasoc,t,"DemD20")$tshock(t) = -0.0002 **[1/(2031-2022)] ;
+
+*-calculate birth rate reduction
+
+brateSIM(t,sim) = brateSIM(t,"BaU") ;
+
+* low fertility rate
+brateSIM(t,"DemD20")$(tshock(t) AND years(t) < 2031)  = brateSIM(t,"bau")*(1-0.180*((years(t)-2021)/9));
+brateSIM(t,"DemD20")$(tshock(t) AND years(t) > 2030)  = brateSIM(t,"bau")*(1-0.259*((years(t)-2030)/20));
+
+* medium fertility rate
+brateSIM(t,"DemD10")$(tshock(t) AND years(t) < 2031)  = brateSIM(t,"bau")*(1-0.124*((years(t)-2021)/9));
+brateSIM(t,"DemD10")$(tshock(t) AND years(t) > 2030)  = brateSIM(t,"bau")*(1-0.222*((years(t)-2030)/20));
+
+*-*-*-Conmbined Shock___________________________________________________________
+
+tfpActSIM(agsima,t,"Combine")$tshock(t)    = tfpActSIM(agsima,t,"Agri20") ;
+xfdsim(ginv,t,"Combine")$tshock(t)         = xfdsim(ginv,t,"Agri20") ;
+brateSIM(t,"Combine")$tshock(t)            = brateSIM(t,"DemD20") ;
+chiPASIM(ihea,t,"Combine")$tshock(t)       = chiPASIM(ihea,t,"DemD20")   ;
+chiPASIM(iedu,t,"Combine")$tshock(t)       = chiPASIM(iedu,t,"DemD20")   ;
+tPafSIM(ihea,h,t,"Combine")$tshock(t)      = tPafSIM(ihea,h,t,"DemD20") ;
+
+*-------------------------------------------------------------------------------
+
+$ontext
+brateSIM(t,"DemD10")$(tshock(t) AND years(t) < 2031)  = brateSIM(t-1,"DemD10")*(1-(0.18*2+0.0128))**[1/(2031-2022)];
+brateSIM(t,"DemD10")$(tshock(t) AND years(t) > 2030)  = brateSIM(t-1,"bau")*(1-(0.258*2))**[1/(2031-2022)];
+
+*brateSIM(t,"DemD20")$(tshock(t) AND years(t) < 2031)  = brateSIM(t-1,"DemD20")*(1-(0.18*3.17+0.0128))**[1/(2031-2022)];
+*brateSIM(t,"DemD20")$(tshock(t) AND years(t) > 2030)  = brateSIM(t-1,"bau")*(1-(0.258*2.65))**[1/(2031-2022)];
+
+*brateSIM(t,"DemD10")$tshock(t) = (brateSIM(t,"BaU")*(1-(0.1+0.0128*(years(t)-2022)))  + brateSIM(t,"BaU")*(0.1+0.0128*(years(t)-2022))*0.5);
+*brateSIM(t,"DemD20")$tshock(t) = (brateSIM(t,"BaU")*(1-(0.2+0.0128*(years(t)-2022)))  + brateSIM(t,"BaU")*(0.2+0.0128*(years(t)-2022))*0.5);
+brateSIM(t,"DemD20")$tshock(t) = (brateSIM(t,"BaU")*(1-(0.2*(1-0.57)+0.0128*(years(t)-2022)))  + brateSIM(t,"BaU")*(0.2*(0.57)+0.0128*(years(t)-2022))*0.5);
+
+/PafSIM(ihea,f,t,"DemD10")
+/PafSIM(iedu,f,t,"DemD10")
+/PafSIM(ihea,f,t,"DemD20")
+/PafSIM(iedu,f,t,"DemD20")
+$offtext
+

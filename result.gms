@@ -6,38 +6,16 @@ SET
 sim
 /
 BaU
-DemD20
-*LAbPr
-*BaU_org
-*Invt
-*Invt_medm
-*Invt_high
-$ontext
-Invt01
-Invt05
-Invt10
-Invt15
-Invt20
-Invt25
-Invt30
-Invt35
-Invt40
-Invt45
-Invt50
-$offtext
-*NFor
-*Coal_medm
-*Coal_high
-
+carbtax
 /
 
 restype
 /
-Level
-PerBs
-DifBs
-YoYGr
-CumGr
+Level     level
+PerBs     percentage deviation from baseline
+DifBs     deviation in level from baseline
+YoYGr     year on year growth rate
+CumGr     cumulative growth
 /
 
 em
@@ -75,12 +53,17 @@ simRep(sim) = YES;
 *tRep(t)$(years(t)>2040) = NO;
 
  tRep(t) = NO;
-* tRep(t) = YES;
-* tRep("2019") = YES;
- tRep(t)$(years(t)<2031) = YES;
-* tRep(t)$(years(t)<2020) = NO;
-
-* tRep(t)$(years(t)>2025)  = NO;
+ tRep(t) = YES;
+* tRep(t)$(years(t)<2036 and years(t)>2020) = YES;
+$ontext
+ tRep("2022") = YES;
+ tRep("2025") = YES;
+ tRep("2030") = YES;
+* tRep("2035") = YES;
+$offtext
+* tRep("2040") = YES;
+* tRep("2045") = YES;
+* tRep("2050") = YES;
 
 
 loop(sim,
@@ -134,7 +117,8 @@ $macro getRes(var)    Parameter var&_r(restype,sim,rdim1,rdim2,t) ; \
 *                      var&_r("YoYGr",sim,rdim1,rdim2,t)$result("Level",sim,'&var&',rdim1,rdim2,t-1) = result("Level",sim,'&var&',rdim1,rdim2,t)/result("Level",sim,'&var&',rdim1,rdim2,t-1)*100-100;
 
 getres(sav)
-getRes(sav)
+getRes(savh)
+getRes(saventr)
 getRes(savf)
 getRes(rsg)
 getRes(inv)
@@ -244,6 +228,7 @@ getRes(unemp)
 getRes(popAge)
 getRes(brate)
 getRes(brateU)
+*getRes(FLFPtot)
 getRes(drate)
 getRes(deprate)
 getRes(flfp)
@@ -302,6 +287,8 @@ getres(nipa)
 *getres(peat)
 *getres(emilucf)
 *getres(yf)
+getres(tfpact)
+getRes(ev)
 
 Parameter emi_r(restype,sim,var,rdim1,rdim2,t);
 
@@ -355,7 +342,11 @@ pgdpfc_r(restype,sim,t)  = result(restype,sim,"NIPA","PrD","pgdpfc",t)  ;
 trent_r(restype,sim,t)   = result(restype,sim,"NIPA","PrD","trent",t)   ;
 
 
-execute_unload "%odir%\Result3.gdx"
+*execute_unload "%odir%\ResultAll_sen.gdx"
+execute_unload "%odir%\ResultEmi.gdx"
+*execute_unload "%odir%\ResultAgr.gdx"
+*execute_unload "%odir%\ResultDD.gdx"
+*execute_unload "%odir%\ResultComb.gdx"
 nipa_r    ,
 sav_r    ,
 savf_r   ,
@@ -466,6 +457,7 @@ aps_r,
 unemp_r,
 brate_r,
 brateU_r,
+*flfptot_r,
 drate_r,
 deprate_r,
 popAge_r,
@@ -527,4 +519,8 @@ xf_r,
 *   peat_R
 *   emilucf_r
 *   yf_r
+ tfpact_r
+ savh_r
+ saventr_r
+ev_r
 ;

@@ -1,11 +1,8 @@
 
 Parameter
-    rgdpmpSIM(t,sim)
-    xaSIM(i,aa,t,sim)
     chiPASIM(i,t,sim)
     lambdalSIM(a,l,t,sim)
     chilambdalSIM(l,t,sim)
-    chilambdalASIM(a,l,t,sim)
     lambdatSIM(a,lnd,t,sim)
     rshrGDPSIM(f,t,sim)
     gammapSIM(a,i,t,sim)
@@ -39,7 +36,6 @@ Parameter
 
     xfdsim(oa,t,sim)
 
-    emiGHGSIM(t,sim)
     emiTotSIM(em,t,sim)
     emiSecASIM(em,aa,tt,sim)
     emitaxSIM(em,t,sim)
@@ -129,7 +125,6 @@ Parameter
    tDrSIM(t,sim)                Personal and Corporate income tax multiplicative adjuster
 
    tPafSIM(i,aa,t,sim)           Agent specific commodity tax
-   PafSIM(i,aa,t,sim)            Agent specific commodity price
    tPaf0SIM(i,aa,t,sim)          Agent specific commodity tax base level
    tPafD0SIM(t,sim)              Agent specific commodity tax additive adjuster for all dimensions
    tPafD1SIM(i,t,sim)            Agent specific commodity tax additive adjuster for commodity i
@@ -139,7 +134,7 @@ Parameter
    tPafM2SIM(aa,t,sim)           Agent specific commodity tax multiplicative adjuster for agent aa
 
 ;
-    rgdpmpSIM(t,sim)               = rgdpmp.l(t)           ;
+
     savfSIM(t,sim)                 = savf.l(t)             ;
     savgSIM(t,sim)                 = savg.l(t)             ;
     pwmSIM(i,t,sim)                = pwm.l(i,t)            ;
@@ -161,7 +156,6 @@ Parameter
     chilsSIM(l,t,sim)              = 1                     ;
     lambdalSIM(a,l,t,sim)          = lambdal.l(a,l,t)      ;
     chilambdalSIM(l,t,sim)          = chilambdal(l,t)      ;
-    chilambdalASIM(a,l,t,sim)       = chilambdalA(a,l,t)      ;
     lambdatSIM(a,lnd,t,sim)        = lambdat.l(a,lnd,t)        ;
     rshrGDPSIM(f,t,sim)            = rshrGDP.l(f,t)        ;
     rsgSIM(t,sim)                  = rsg.l(t)                 ;
@@ -170,7 +164,6 @@ Parameter
     drateSIM(age,t,sim)            = drate.l(age,t)              ;
     xfdsim(oa,t,sim)               = xfd.l(oa,t)             ;
     tfpActSIM(a,t,sim)             = tfpAct.l(a,t)            ;
-    emiGHGSIM(t,sim)               = emiGHG.l(t)         ;
     emiTotSIM(em,t,sim)            = emiTot.l(em,t)           ;
     emiSecASIM(em,aa,tt,sim)       = emiSecA.l(em,aa,tt)      ;
     lambdaepSIM(a,e,v,t,sim)       = lambdaep.l(a,e,v,t)      ;
@@ -260,7 +253,6 @@ Parameter
    tDrSIM(t ,sim)                = tDr.l(t )                ;
 
    tPafSIM(i,aa,t,sim)           = tPaf.l(i,aa,t)           ;
-   PafSIM(i,aa,t,sim)            = Paf.l(i,aa,t)           ;
    tPaf0SIM(i,aa,t,sim)          = tPaf0.l(i,aa,t)          ;
    tPafD0SIM(t,sim)              = tPafD0.l(t)              ;
    tPafD1SIM(i,t,sim)            = tPafD1.l(i,t)            ;
@@ -270,47 +262,102 @@ Parameter
    tPafM2SIM(aa,t,sim)           = tPafM2.l(aa,t)           ;
 
    chiPASIM(i,t,sim)           = chiPA(i) ;
-   xaSIM(i,aa,t,sim)           = xa.l(i,aa,t);
+
 
 *    emisect(a) = YES ;
 
+*lmb trial Closing the gender gap Benin
 *-------------------------------------------------------------------------------
-*--Carbon tax -----------------------------------------------------------------------------
-set aaemi(aa) sectors covered by emission pricing ???
-/
-*set.agr
-*does not run
-*set.man
-*a-ely
-*
-*a-met
-*a-omf
+*- Agriculture -----------------------------------------------------------------
+*-------------------------------------------------------------------------------
 $ontext
-a-oxt
-a-fod
-a-b_t
-a-tex
-a-wod
-a-bph
-a-gdt
-a-cns
+1% increase in government investment in agriculture increases productivity by 0.11%
+Then for 30% increase >  We need to increase government investment by => 30/0.11 =~= 272.
+Since we are targeting the 53% of employed (i.e. female) we need 272*0.53 = 144.55 % increase   ;
+According to Balcet the share of agriculture in budget in chad is 1.93% of GDP and 44% of this is investment for 2004-2012.
+Assuming the same rate: 6034*0.0193*0.44 = 51. So 144% increase means 73.71. Total Government investment is 212.
+Thus adding another 73.71 is a 34.7% increase in government investments.
+In the same way
+
+10 13.04347826
+15 19.56521739
+18 23.47826087
+20 26.08695652
+34 30
+
+According to:
+Balcet, Jean-Claude Leon; Cesar Baira, Dering; Zoua, Paulette C.E. Aida Thioune;
+ Tayelim, Berte. 2014. Chad - Public expenditure review in the agricultural,
+ rural development, and food security sector (English). Washington, D.C. :
+ World Bank Group.
+
+Female operated land is  (1 + (1.567/(1.567 + 2.865)) so we improve the productivity of land
+by weighting with this share.
 
 $offtext
-a-ely
-a-otp
-a-wtp
-a-atp
-*a-chm
-set.h
+*-----------------------------------------------------------------------------------------------------------------------------
+set agrisim(sim)
+/
+Agri10
+Agri20
 /
 ;
-* shock on real emission rate: er in usd * amount of emi tax * scaling (in basebridge and check if total emissions
-* correspond to actual data in Mega ton)* period to apply the tax
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =  0.555 * 10 * (years(t)-2021)/9 ;
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  0.555 * (10 + 11 * (years(t)-2030)/10) ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*2) * 1e-6)  ;
-  tEmiM1SIM(ema,t,"carbtax") = 0 ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*10) * 1e-6) * ( 1 + (years(t)-2030)/19)  ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2025)  = ((0.555*1.2) * 1e-6)* ( 1 + (years(t)-2025)/5) ;
 
-  emiGHGSIM(t,"carbtax") = emiGHGSIM(t,"BaU") * 0.90 ;
+tfpActSIM(agsima,t,"Agri10")$(tshock(t) AND years(t) < 2031) = tfpActSIM(agsima,t,"BaU")*[1 + 0.19/2*shra(agsima)]**[1/(2031-2022)];
+tfpActSIM(agsima,t,"Agri20")$(tshock(t) AND years(t) < 2031) = tfpActSIM(agsima,t,"BaU")*[1 + 0.19 *shra(agsima)]**[1/(2031-2022)];
+
+xfdsim(ginv,t,"Agri10")$(tshock(t) AND years(t) < 2031)  = xfdsim(ginv,t,"BaU")*(1+0.062/2)**[1/(2031-2022)];
+xfdsim(ginv,t,"Agri20")$(tshock(t) AND years(t) < 2031)  = xfdsim(ginv,t,"BaU")*(1+0.062)  **[1/(2031-2022)];
+
+tfpActSIM(agsima,t,agrisim)$(tshock(t) AND years(t)>2030) =  tfpActSIM(agsima,"2030",agrisim);
+xfdsim(ginv,t,agrisim)$(tshock(t) AND years(t)>2030)      =  xfdsim(ginv,"2030",agrisim) ;
+*_______________________________________________________________________________________________________________________________
+*xfdsim(ginv,t,"Agri10")$(tshock(t) AND years(t) < 2031)  = xfdsim(ginv,t,"BaU")*(1+0.062/2*(years(t)-2022)/9);
+*xfdsim(ginv,t,"Agri20")$(tshock(t) AND years(t) < 2031)  = xfdsim(ginv,t,"BaU")*(1+0.062*(years(t)-2022)/9);
+*tfpActSIM(agsima,t,"Agri10")$(tshock(t) AND years(t) < 2031) = tfpActSIM(agsima,t,"BaU")*[1 + 0.19/2*shra(agsima)*(years(t)-2022)/9];
+*tfpActSIM(agsima,t,"Agri20")$(tshock(t) AND years(t) < 2031) = tfpActSIM(agsima,t,"BaU")*[1 + 0.19  *shra(agsima)*(years(t)-2022)/9];
+
+lambdalSIM(agsima,l,t,"Agri10")$(tshock(t) AND ord(l)<5 AND years(t) < 2031) = lambdalSIM(agsima,l,t,"BaU")*(1 + 0.3*10/20*(years(t)-2019)/11);
+lambdalSIM(agsima,l,t,"Agri20")$(tshock(t) AND ord(l)<5 AND years(t) < 2031) = lambdalSIM(agsima,l,t,"BaU")*(1 + 0.3*20/20*(years(t)-2019)/11);
+
+lambdatSIM(agsima,lnd,t,"Agri10")$(tshock(t) AND years(t) < 2031) = lambdatSIM(agsima,lnd,t,"BaU")*(1 + 0.3*10/20*(years(t)-2019)/11);
+lambdatSIM(agsima,lnd,t,"Agri20")$(tshock(t) AND years(t) < 2031) = lambdatSIM(agsima,lnd,t,"BaU")*(1 + 0.3*20/20*(years(t)-2019)/11);
+
+lambdalSIM(agsima,l,t,agrisim)$(tshock(t) AND years(t)>2030) = lambdalSIM(agsima,l,"2030",agrisim)   ;
+lambdatSIM(agsima,lnd,t,agrisim)$(tshock(t) AND years(t)>2030) = lambdatSIM(agsima,lnd,"2030",agrisim)   ;
+
+*-------------------------------------------------------------------------------
+*- Demographic dividend  -------------------------------------------------------
+*-------------------------------------------------------------------------------
+set demsim(sim)
+/
+DemD10
+DemD20
+/
+;
+
+*-calculate birth rate
+
+brateSIM(t,sim) = brateSIM(t,"BaU") ;
+brateSIM(t,"DemD10")$tshock(t) = (brateSIM(t,"BaU")*(1-(0.1+0.0025*(years(t)-2022)))  + brateSIM(t,"BaU")*(0.1+0.0025*(years(t)-2022))*0.5);
+brateSIM(t,"DemD20")$tshock(t) = (brateSIM(t,"BaU")*(1-(0.2+0.0025*(years(t)-2022)))  + brateSIM(t,"BaU")*(0.2+0.0025*(years(t)-2022))*0.5);
+
+chiPASIM(ihea,t,demsim)$tshock(t)  = chiPASIM(ihea,t,"DemD10")*0.75 ;
+chiPASIM(iedu,t,demsim)$tshock(t)  = chiPASIM(iedu,t,"DemD10")*0.75 ;
+
+tPaf0SIM(ihea,h,t,demsim)$tshock(t)     = -0.05  ;
+tPaf0SIM(ihea,gov,t,demsim)$tshock(t)   = -0.05  ;
+tPaf0SIM(iedu,h,t,demsim)$tshock(t)     = -0.05  ;
+tPaf0SIM(iedu,gov,t,demsim)$tshock(t)   = -0.05  ;
+
+*-*-*-Conbined Shock
+
+tfpActSIM(agsima,t,"Combine")$tshock(t)    = tfpActSIM(agsima,t,"Agri10") ;
+xfdsim(ginv,t,"Combine")$tshock(t)         = xfdsim(ginv,t,"Agri10") ;
+brateSIM(t,"Combine")$tshock(t)            = brateSIM(t,"DemD20") ;
+chiPASIM(ihea,t,"Combine")$tshock(t)       = chiPASIM(ihea,t,"DemD20")   ;
+chiPASIM(iedu,t,"Combine")$tshock(t)       = chiPASIM(iedu,t,"DemD20")   ;
+tPafSIM(ihea,h,t,"Combine")$tshock(t)      = tPafSIM(ihea,h,t,"DemD20") ;
+
+*-------------------------------------------------------------------------------
+

@@ -49,6 +49,8 @@ fp(is)          Factors of production
 l(fp)           Labor
 ul(l)           Unskilled labor
 sl(l)           Skilled labor
+fl(l)           Female labor
+ml(l)           Male labor
 inst(is)        Institutions
 instd(inst)        Domestic creditors
 instf(inst)        Foreign creditors
@@ -107,7 +109,7 @@ $loaddc fp l ul
 $loaddc inst mapInst entr cap lnd
 $loaddc gov inv ginv adpinv stb row
 $loaddc dtx ptx stx mtx otx atx ctx psb etx ssb ftx mapftax
-$loaddc emiAa mapemi isrep mapRep emSrc atour ctour
+$loaddc emiAa mapemi isrep mapRep emSrc atour ctour ml fl
 
 $gdxin
 
@@ -136,15 +138,16 @@ set
    solStatus
    Walras
    /
+*lmb
+$ontext
    fl(l)      female labor
 /
 f-F_skl
 f-F_nsk
 /
+$offtext
 ;
 
-
-*femlab(l) = YES;
 fl(l)     = YES;
 
 Alias
@@ -158,7 +161,7 @@ oax(oa)$(not h(oa)) = yes ;
 in(i) = not e(i) ;
 sl(l) = not ul(l) ;
 tlast(t)$(ord(t)=card(t)) = YES ;
-
+*fl(l) = not ml(l) ;
 Parameter
     SAM0(is0,js0)       "PRP 2018, million"
     nrgPriceBase(i0)     Base Energy Prices
@@ -361,6 +364,12 @@ $gdxin
 
 set em "Emission types" /
    co2               "Carbon emissions"
+   n2o               "N2O emissions"
+   ch4               "Methane emissions"
+   fgas              "Emissions of fluoridated gases"
+/ ;
+
+set ema(em) "air pollution" /
    n2o               "N2O emissions"
    ch4               "Methane emissions"
    fgas              "Emissions of fluoridated gases"
@@ -597,9 +606,9 @@ Parameter scaleEm(em) Emission scale factor;
 
 *scaleEm(em) = 1 ;
 *- calibrated according to https://www.sciencedirect.com/science/article/pii/S1364032117305257
-scaleEm('co2')  = 371*0.51/(sum(is0,emiXP0('co2',is0)) + SUM((is0p,js0p), emi0('co2',is0p,js0p))) ;
-scaleEm('ch4')  = 371*0.36/(sum(is0,emiXP0('ch4',is0)) + SUM((is0p,js0p), emi0('ch4',is0p,js0p))) ;
-scaleEm('n2o')  = 371*0.13/(sum(is0,emiXP0('n2o',is0)) + SUM((is0p,js0p), emi0('n2o',is0p,js0p))) ;
+scaleEm('co2')  = 7.76/(sum(is0,emiXP0('co2',is0)) + SUM((is0p,js0p), emi0('co2',is0p,js0p))) ;
+scaleEm('ch4')  = 6.79/(sum(is0,emiXP0('ch4',is0)) + SUM((is0p,js0p), emi0('ch4',is0p,js0p))) ;
+scaleEm('n2o')  = 2.99/(sum(is0,emiXP0('n2o',is0)) + SUM((is0p,js0p), emi0('n2o',is0p,js0p))) ;
 *scaleEm('fgas') = 5/SUM((is0p,js0p), emi0('fgas',is0p,js0p)) ;
 
 emi0(em,is0,js0) = scaleEm(em)* emi0(em,is0,js0);
@@ -665,7 +674,7 @@ parameter
    gap(t)
 ;
 
-years(tf) = 2009 + ord(tf) ;
+years(tf) = 2017 + ord(tf) ;
 
 gap(t)$(not t0(t)) = years(t) - years(t-1) ;
 

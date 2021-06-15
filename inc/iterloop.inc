@@ -43,6 +43,7 @@ loop(t$(ts(t) and not ifComp and ord(t) gt 2 and (ifLoad and years(t) gt %lastYe
 
    yh.l(h,t)              = work*yh.l(h,t-1) ;
    savh.l(h,t)            = work*savh.l(h,t-1) ;
+   ev.l(h,t)              = ev.l(h,t-1) ;
 
    yg.l(g,t)              = work*yg.l(g,t-1) ;
 
@@ -174,6 +175,9 @@ $offtext
     v_chiLs.l(l,t) = v_chiLs.l(l,t-1);
     FLFP.l(fl,t) = FLFP.l(fl,t-1);
     FLFPTot.l(t) = FLFPTot.l(t-1);
+    MLFPTot.l(t) = MLFPTot.l(t-1);
+*    brate.l(t)   = brate.l(t-1);
+    brateU.l(t)  = brateU.l(t-1);
 
    debtPay.l(instfd,t) = debtPay.l(instfd,t)*work ;
    debtNew.l(instfd,t) = debtNew.l(instfd,t)*work ;
@@ -367,13 +371,14 @@ popAge.fx(age,tt-1)  = popAge.l(age,tt-1) ;
 pop.fx(cohorts,tt-1) = pop.l(cohorts,tt-1) ;
 *lsT.fx(lf,tt-1) = lsT.l(lf,tt-1);
 *brateU.fx(tt-1)    = brateU.l(tt-1) ;
+*brate.fx(tt-1)    = brate.l(tt-1) ;
 *unemp.fx(tt-1) = unemp.l(tt-1) ;
 aps.fx(h,tt-1) = aps.l(h,tt-1)  ;
 
 dmgShftLambdaL.fx(tt-9) = dmgShftLambdaL.l(tt-9);
 
 xa.fx(i,aa,t0)  = xa.l(i,aa,t0) ;
-
+*brate.fx(t0)    = brate.l(t0) ;
    dmgShftTFP.fx(t0)        = dmgShftTFP.l(t0)        ;
    dmgShftLambdaL_HH.fx(t0) = dmgShftLambdaL_HH.l(t0) ;
    dmgShftLambdaL.fx(t0)    = dmgShftLambdaL.l(t0)    ;
@@ -414,13 +419,14 @@ $offtext
 
 *   rshrGDP.lo(gov,ts) = -inf ;
 *   rshrGDP.up(gov,ts) = +inf ;
-
+*lmb made endo
    rshrGDP.fx(gov,t)$ts(t) = rshrGDP.l(gov,t-1);
    xfd.lo(gov,ts) = -inf ;
    xfd.up(gov,ts) = +inf ;
+*lmb made exo for DD analysis
+*   xa.fx(in,f,t)$[ts(t) and f1(f) ] = xa.l(in,f,t-1)*(1+GDPpcProj(tt)/100) ;
 
-
-*- government saving
+*- government investment
 *   rshrGDP.fx(ginv,t)$ts(t)  = 100*dyntab("GovInv-GDP",t);
    rshrGDP.fx(ginv,t)$ts(t)  = rshrGDP.l(ginv,t);
 
@@ -522,6 +528,7 @@ if(ifComp ne 1 and ifCal eq 1,
 *   ggdppc.lo(ts) = -inf ;
 *   ggdppc.up(ts) = +inf ;
 
+*lmb made endogenous
    brateU.fx(t)$ts(t) =  popAge.l("age000",t) / sum(age$mapage(age,"P1564"),popAge.l(age,t-1));
 
 *-adaptation investments in the baseline (level fixed, shares adjusts)
@@ -541,8 +548,9 @@ elseif (ifComp ne 1 and ifCal ne 1),
 
 *-fix labor productivity to initial levels
 *   lambdal.fx(a,l,ts) = lambdal.l(a,l,ts) ;
-
-   brateU.fx(t)$ts(t) = brateU.l(t) ;
+*lmb
+*   brateU.fx(t)$ts(t) = brateU.l(t) ;
+   brateU.fx(t)$ts(t) = brateU.l(t-1)*( brateScale(t)/brateScale(t-1) ) ;
 
 );
 
@@ -588,10 +596,6 @@ tfac.fx(a,fp,t)$(NOT sum(is$mapftax(fp,is),sam(is,a)))  = 0 ;
         emRev.FX(em,aa,t)$(NOT emSwitch)  = 0;
         emBuy.FX(em,aa,t)$(NOT emSwitch)  = 0;
 
-
-
-
-*      brateU.fx(tt) = brateU.l(tt-1)*0.985 ;
 
 *        emical.lo(tt) = -inf ;
 *        emical.up(tt) = +inf ;

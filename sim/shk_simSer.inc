@@ -1,22 +1,16 @@
-* low birth rate
-  brateU.fx(tt) = brateSIM(tt,"%SIMNAME%") ;
-
-*support consumption by making health and education more affordable
-*  tPaf0.fx(i,fd,tt)  =  tPaf0SIM(i,fd,tt,"%SIMNAME%") ;
-
-* education and health expenditure
-  xa.fx(ihea,f,tt)$[f1(f)] = xaSIM(ihea,f,tt,"%SIMNAME%") ;
-  xa.fx(iedu,f,tt)$[f1(f)] = xaSIM(iedu,f,tt,"%SIMNAME%") ;
 
 *-efficiency gains
    tfpAct.fx(a,tt)= tfpActSIM(a,tt,"%SIMNAME%")  ;
-*   tfpAct.fx(agsima,tt)= tfpActSIM(agsima,tt,"%SIMNAME%")  ;
-*   tfpAct.fx(srv,tt)= tfpActSIM(srv,tt,"%SIMNAME%")  ;
-*   chilambdalA(a,l,tt)= chilambdalASIM(a,l,tt,"%SIMNAME%") ;
+*   chilambdalA(a,fl,tt)= chilambdalASIM(a,fl,tt,"%SIMNAME%") ;
+* Source of efficiency gain
+* government expenditure on active labor market policies (ALMPs)
 * Source of efficiency gain
     xfd.fx(ginv,tt) =  xfdSIM(ginv,tt,"%SIMNAME%") ;
     rshrGDP.lo(ginv,tt) = -inf;
     rshrGDP.up(ginv,tt) = +inf;
+
+*  xa.fx(ihea,f,tt)$[f1(f)] = xaSIM(ihea,f,tt,"%SIMNAME%") ;
+*  xa.fx(iedu,f,tt)$[f1(f)] = xaSIM(iedu,f,tt,"%SIMNAME%") ;
 
 * Financing of expenditure
     rsg.fx(tt)$(years(tt) < 2036) = rsgSIM(tt,"%SIMNAME%");

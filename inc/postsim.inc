@@ -158,23 +158,25 @@ loop((inst,instp)$(row(inst)),
     hwork(h) = sum(l, chil(h,l,t)*sum(a$aact(a),swage.l(a,l,t)*xf.l(a,l,t)))
       put sim.tl, "laby",h.tl, "(blank)", years(t):4:0, (oscale*hwork(h)) / ;
       put sim.tl, "uh",h.tl, "(blank)", years(t):4:0, (oscale*uh.l(h,t)) / ;
-       ) ;
-*Calvin modification
-$ontext
-   loop(a,
-      work = swage.l(a,"N_skill",t)*xf.l(a,"N_skill",t)+swage.l(a,"N_unskill",t)*xf.l(a,"N_unskill",t)
-        put sim.tl, "N_laby",a.tl, "(blank)", years(t):4:0, (oscale*work) / ;
-       ) ;
+      put sim.tl, "yfh",h.tl, "", years(t):4:0, (oscale*yf.l(h,t)) / ;
+      put sim.tl, "xfh",h.tl, "", years(t):4:0, (oscale*xfd.l(h,t)) / ;
+    hwork(h) = chikh(h,t)*kapy.l(t)
+      put sim.tl, "capy",h.tl, "", years(t):4:0, (oscale*hwork(h)) / ;
+   hwork(h) = sum((lnd,a), chit(h,lnd,t)*pland.l(a,lnd,t)*xf.l(a,lnd,t))
+      put sim.tl, "landy",h.tl, "", years(t):4:0, (oscale*work) / ;
 
-   loop(a,
-      work = swage.l(a,"F_skill",t)*xf.l(a,"F_skill",t)+swage.l(a,"F_unskill",t)*xf.l(a,"F_unskill",t)
-        put sim.tl, "F_laby",a.tl, "(blank)", years(t):4:0, (oscale*work) / ;
        ) ;
 
-
-$offtext
+   work= sum(h, yf.l(h,t))/sum(h, xfd.l(h,t)) ;
+   put sim.tl, "CPI","", "", years(t):4:0, (work) / ;
 
   put sim.tl, "kapy", "(blank)", "(blank)", years(t):4:0, (oscale*kapy.l(t)) / ;
+  put sim.tl, "brateU", "(blank)", "(blank)", years(t):4:0, (brateu.l(t)) / ;
+  put sim.tl, "flfptot", "(blank)", "(blank)", years(t):4:0, (flfptot.l(t)) / ;
+
+   work = sum((lnd,a,h), chit(h,lnd,t)*pland.l(a,lnd,t)*xf.l(a,lnd,t))
+      put sim.tl, "landy","", "", years(t):4:0, (oscale*work) / ;
+
 
   loop((instp,iinst),
      put sim.tl, "transf",instp.tl,iinst.tl, years(t):4:0, (oscale*transfers.l(instp,iinst,t))/ ;
@@ -291,6 +293,9 @@ $offtext
       put sim.tl, "rrat",  a.tl, "(blank)", years(t):4:0, (rrat.l(a,t)) / ;
       put sim.tl, "xp",    a.tl, "(blank)", years(t):4:0, (oscale*xp.l(a,t)) / ;
       put sim.tl, "pp",    a.tl, "(blank)", years(t):4:0, (pp.l(a,t)) / ;
+      put sim.tl, "ldT",   a.tl, "", years(t):4:0, (oscale*sum(l,xf.l(a,l,t))) / ;
+      put sim.tl, "ldT_un", a.tl, "", years(t):4:0, (oscale*sum(ul,xf.l(a,ul,t))) / ;
+
    loop(lnd,
       put sim.tl, "land",  a.tl, "(blank)", years(t):4:0, (oscale*xf.l(a,lnd,t)) / ;
       put sim.tl, "pland", a.tl, "(blank)", years(t):4:0, (pland.l(a,lnd,t)) / ;

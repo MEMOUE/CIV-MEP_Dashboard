@@ -5,12 +5,19 @@ $setGlobal savF     ".\sav"
 $setGlobal datFile  "BaU_data_in"
 $setGlobal inBaUGDX  "%odir%\BaU.gdx"
 
+*lmb removed set sim as already declared in opt.inc and it was creating errors
+*$ontext
+*lmb added  $onmulti to avoid compilation error
+$onmulti
 set sim Simulations to compare /
 BaU
-LabPr
-HeaEf
+*Agri10
+Agri20
+*DemD10
+DemD20
+*combine
 / ;
-
+*$offtext
 *  Set ifCal to 1 for BaU scenarios
 
 $setglobal BridgeFile BaseBridge_v1.xlsx
@@ -21,8 +28,12 @@ $include '%incF%\opt.inc'
 Parameter simrep(sim) simulations that are reported;
 simrep(sim) = NO;
 simrep("BaU") = YES;
-*-change to report specific simulations 
-simrep(sim) = YES;
+*-change to report specific simulations
+*lmb disactivated
+*simrep(sim) = YES;
+*lmb activated
+simrep('Agri20') = YES;
+simrep('DemD20') = YES;
 
 *- set 1 to avoid solving demand calibration model
 ifMakeTab = 1 ;
@@ -35,7 +46,7 @@ $include '%incF%\inical.inc'
 
 
 
-set treport(t) /2019*2050/
+set treport(t) /2018*2050/
 
 set asim(sim) ; asim(sim) = no ;
 

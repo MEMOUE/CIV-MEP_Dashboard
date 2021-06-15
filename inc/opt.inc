@@ -17,7 +17,7 @@ scalars
     ifLoad "Flag to indicate whether a baseline has been loaded or not"
     / 0 /
     ifMakeTab  Set to 1 to run maketab.gms
-    /0/
+    /1/
  ;
 
 *- if solution resumes from a point set to 1 (Experimental, be careful!!! )
@@ -29,31 +29,12 @@ $setglobal RegGtapName VNM
 SET
    tf              all time /2018*2100 /
    t(tf)           sim time / 2018*2050 /
+*   t(tf)           sim time / 2018*2025 /
    t0(t)           Base year / 2018 /
 ;
 * put simulation names here
 SET sim
 /
 BaU
-LabPr
-HeaEf
-
-Agri00
-Agri10
-Agri15
-Agri20
-Agri25
-Agri30
-Agri35
-
-DemD05
-DemD10
-DemD20
-DemD30
-De05NC
-De10NC
-De20NC
-De30NC
-
-combine
+carbtax
 /

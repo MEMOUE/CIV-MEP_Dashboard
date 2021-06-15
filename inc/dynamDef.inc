@@ -9,7 +9,7 @@ if(ifCal eq 0,
    execute_loadpoint "%inBaUGDX%" ;
 
    xfT(oa,t) = xfd.l(oa,t) ;
-
+   brateScale(t)= brateU.l(t);
    ifLoad = 1 ;
 
 ) ;
