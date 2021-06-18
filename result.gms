@@ -52,19 +52,16 @@ simRep(sim) = YES;
 *tRep(t)$(mod(ord(t)+1,5)=0) = YES;
 *tRep(t)$(years(t)>2040) = NO;
 
- tRep(t) = NO;
+* tRep(t) = NO;
  tRep(t) = YES;
 * tRep(t)$(years(t)<2036 and years(t)>2020) = YES;
 $ontext
  tRep("2022") = YES;
  tRep("2025") = YES;
  tRep("2030") = YES;
-* tRep("2035") = YES;
+ tRep("2035") = YES;
+ tRep("2040") = YES;
 $offtext
-* tRep("2040") = YES;
-* tRep("2045") = YES;
-* tRep("2050") = YES;
-
 
 loop(sim,
 

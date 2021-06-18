@@ -607,7 +607,7 @@ Parameter scaleEm(em) Emission scale factor;
 *scaleEm(em) = 1 ;
 *- calibrated according to https://www.sciencedirect.com/science/article/pii/S1364032117305257
 scaleEm('co2')  = 7.76/(sum(is0,emiXP0('co2',is0)) + SUM((is0p,js0p), emi0('co2',is0p,js0p))) ;
-scaleEm('ch4')  = 6.79/(sum(is0,emiXP0('ch4',is0)) + SUM((is0p,js0p), emi0('ch4',is0p,js0p))) ;
+scaleEm('ch4')  = 5.57/(sum(is0,emiXP0('ch4',is0)) + SUM((is0p,js0p), emi0('ch4',is0p,js0p))) ;
 scaleEm('n2o')  = 2.99/(sum(is0,emiXP0('n2o',is0)) + SUM((is0p,js0p), emi0('n2o',is0p,js0p))) ;
 *scaleEm('fgas') = 5/SUM((is0p,js0p), emi0('fgas',is0p,js0p)) ;
 
@@ -712,7 +712,7 @@ $loaddc labor
 
 alias (a,app);
 
-labor(l,a) = pop0("P1564")*0.775 *  labor(l,a)/SUM((lp,app),labor(lp,app))  ;
+labor(l,a) = pop0("P1564")*0.776 *  labor(l,a)/SUM((lp,app),labor(lp,app))  ;
 
 labor(l,a)$(NOT labor(l,a)) = SAM(l,a)/SUM((lp,app),SAM(lp,app))*pop0("P1564")  ;
 

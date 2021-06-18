@@ -47,17 +47,6 @@ loop(row,
    dinst(inst)$(not mapinst(row,inst)) = yes ;
 ) ;
 
-set emilow(aa) sectors with low participation to emissions tax
-/
-*a-ely
-*a-chm
-*a-met
-*a-omf
-*a-bph
-a-wtp
-*a-cns
-/
-;
 
 set f1(f)  government final consumption
 /g-govt/;
@@ -134,6 +123,7 @@ variables
    DebtIntD(t)          Interest on domestic debt
 
    yg(g,t)              "Vector of government revenues"
+*   ygEmi(em,emSrc,aa,t)
    ygov(t)              "Total government revenues"
    gtax(t)              "Government direct taxes"
    dgovtax(t)           "Direct tax rate on government"
@@ -183,7 +173,7 @@ variables
    pkfnnrg(h,k,t)       Price of aggregate non energy demand
    pkfnrg(h,k,t)        Price of aggregate energy demand
    xkfshr(h,k,t)        Budget shares
-   EV(h,t)
+*   EV(h,t)
 *  Other demand variables
 
    xfnnrg(f,t)          Other final demand demand for non energy aggregate
@@ -748,6 +738,7 @@ equations
    yghtxeq(t)                    Revenues from direct household taxes
    ygatxeq(t)                    Revenues from commodity taxes
    ygctxeq(t)                    Revenues from carbon taxes
+*   ygEmieq(em,emSrc,aa,t)
 
    ygoveq(gov,t)                 Gross government revenues
    gtaxeq(t)                     Government taxes
@@ -782,7 +773,7 @@ equations
    incelasLosseq
    incElasC1eq
    incElasC2eq(h,k,t)
-   EVeq(h,t,t)
+*   EVeq(h,t,t)
 
    xkfnnrgeq(h,k,t)        Aggregate non energy demand
    xkfnrgeq(h,k,t)         Aggregate energy demand
@@ -816,6 +807,7 @@ equations
    xmeq(i,t)               Demand for imports
    paeq(i,t)               Armington price
    pafeq(i,aa,t)           Armington price inclusive of all taxes
+   paf1eq(emsrc,aa,t)           Armington price inclusive of all taxes
 
    xdseq(i,t)              Domestic supply of production
    edseq(i,t)              Export supply of production

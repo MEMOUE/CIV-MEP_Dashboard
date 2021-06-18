@@ -17,7 +17,7 @@ scalar    ifCal  Set to 1 for BaU    / 1 /
 
 
 
-$setglobal BridgeFile BaseBridge_v2.xlsx
+$setglobal BridgeFile BaseBridge_v1.xlsx
 
 $include "%incF%\dynamDef.inc"
 $include "%incF%\reportDecl.inc"
@@ -29,8 +29,8 @@ loop(tt$(t0(tt)),
 $include %incF%\samCalc.inc
 );
 
-* loop(tt$(years(tt) le 2030),
  loop(tt$(years(tt) le 2040),
+* loop(tt$(years(tt) le 2022),
    if (ord(tt) gt 1,
 
       ts(tt) = yes ;
@@ -93,5 +93,5 @@ PrExIm("ExPr",i,t)$xs.l(i,t)  = xe.l(i,t)/xs.l(i,t) ;
 
 
 execute_unload "%odir%\%simName%.gdx" ;
-*display fl;
+*display ygemi.l;
 

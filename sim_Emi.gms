@@ -25,7 +25,7 @@ scalar ifCal / 0 / ;
 
 $setGlobal inBaUGDX  "%odir%\BaU.gdx"
 
-$setglobal BridgeFile BaseBridge_v2.xlsx
+$setglobal BridgeFile BaseBridge_v1.xlsx
 
 $include "%incF%\dynamDef.inc"
 
@@ -35,20 +35,18 @@ $include "%incF%\reportDecl.inc"
 *ued.fx(h,k,kp,t) = ued.l(h,k,kp,t) ;
 *incelas.fx(h,k,t) = incelas.l(h,k,t) ;
 
-
 *set tshock(t) years shocks are affective /2022*2050/;
-set tshock(t) years shocks are affective /2022*2040/;
+set tshock(t) years shocks are effective /2022*2040/;
 
 set iter /1*4/ ;
 Parameter iterNum(iter) ;
 
 iterNum(iter) = ord(iter) ;
 
+
 $include %simF%\shkcalc.inc
 
-
-
-*loop(tt$(years(tt) le 2050),
+*loop(tt$(years(tt) le 2030),
 loop(tt$(years(tt) le 2040),
 
    if (ord(tt) gt 1,
@@ -62,7 +60,7 @@ $include %simF%\shk_%shkFile%.inc
 
       options limrow=0, limcol=0 ;
 *      options solprint=off ;
-      options iterlim=100 ;
+      options iterlim=100000 ;
 
 *if(years(tt)=2018,
 if(0,

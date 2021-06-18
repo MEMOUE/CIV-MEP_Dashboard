@@ -39,7 +39,6 @@ Parameter
 
     xfdsim(oa,t,sim)
 
-    emiGHGSIM(t,sim)
     emiTotSIM(em,t,sim)
     emiSecASIM(em,aa,tt,sim)
     emitaxSIM(em,t,sim)
@@ -138,7 +137,9 @@ Parameter
    tPafM1SIM(i,t,sim)            Agent specific commodity tax multiplicative adjuster for commodity i
    tPafM2SIM(aa,t,sim)           Agent specific commodity tax multiplicative adjuster for agent aa
 
+   emiGHGSIM(t,sim)            Greenhouse gas emissions
 ;
+    emiGHGSIM(t,sim)               = emiGHG.l(t)           ;
     rgdpmpSIM(t,sim)               = rgdpmp.l(t)           ;
     savfSIM(t,sim)                 = savf.l(t)             ;
     savgSIM(t,sim)                 = savg.l(t)             ;
@@ -170,7 +171,6 @@ Parameter
     drateSIM(age,t,sim)            = drate.l(age,t)              ;
     xfdsim(oa,t,sim)               = xfd.l(oa,t)             ;
     tfpActSIM(a,t,sim)             = tfpAct.l(a,t)            ;
-    emiGHGSIM(t,sim)               = emiGHG.l(t)         ;
     emiTotSIM(em,t,sim)            = emiTot.l(em,t)           ;
     emiSecASIM(em,aa,tt,sim)       = emiSecA.l(em,aa,tt)      ;
     lambdaepSIM(a,e,v,t,sim)       = lambdaep.l(a,e,v,t)      ;
@@ -278,39 +278,44 @@ Parameter
 *--Carbon tax -----------------------------------------------------------------------------
 set aaemi(aa) sectors covered by emission pricing ???
 /
-*set.agr
-*does not run
-*set.man
-*a-ely
-*
-*a-met
-*a-omf
 $ontext
-a-oxt
-a-fod
-a-b_t
-a-tex
-a-wod
-a-bph
-a-gdt
-a-cns
-
+set.agr
+set.man
+set.srv
+set.h
 $offtext
+*$ontext
 a-ely
 a-otp
 a-wtp
 a-atp
-*a-chm
 set.h
+*$offtext
 /
 ;
 * shock on real emission rate: er in usd * amount of emi tax * scaling (in basebridge and check if total emissions
 * correspond to actual data in Mega ton)* period to apply the tax
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =  0.555 * 10 * (years(t)-2021)/9 ;
-  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  0.555 * (10 + 11 * (years(t)-2030)/10) ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*2) * 1e-6)  ;
-  tEmiM1SIM(ema,t,"carbtax") = 0 ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  = ((0.555*10) * 1e-6) * ( 1 + (years(t)-2030)/19)  ;
-*  rtEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2025)  = ((0.555*1.2) * 1e-6)* ( 1 + (years(t)-2025)/5) ;
+* scaling * exchange rate*amount in $
 
+* apply a 1 FCFA tax to check if tax works well by looking at YG. if applied on all, then yg=emitot,
+* if on selected users, should correspond to share of these sectors in total emission (75%)
+*  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =   1 ;
+
+* apply shock -----------------------------------------------------------------------------------
+* shock on real emission rate: er in usd * amount of emi tax * scaling (in basebridge and check if total emissions
+* correspond to actual data in Mega ton)* period to apply the tax
+$ontext
+  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =  0.555 * 10 * (years(t)-2021)/9 ;
+  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  0.555 * (10 + 11 * (years(t)-2030)/10) ;
+  tEmiM1SIM(ema,t,"carbtax") = 0 ;
   emiGHGSIM(t,"carbtax") = emiGHGSIM(t,"BaU") * 0.90 ;
+$offtext
+
+*$ontext
+  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2021)  =   555*10 * (years(t)-2021)/9 ;
+*  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =   500*20 * (years(t)-2030)/10 ;
+*  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  tEmiSIM(em,aaemi,t-1,"carbtax")+500*10 * (years(t)-2030)/10 ;
+  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  555*10 +555*10 * (years(t)-2030)/10 ;
+*  tEmiSIM(em,aaemi,t,"carbtax")$(tshock(t) and years(t)>2030)  =  0.555 * (10 + 11 * (years(t)-2030)/10) ;
+  tEmiM1SIM(ema,t,"carbtax") = 0 ;
+*$offtext

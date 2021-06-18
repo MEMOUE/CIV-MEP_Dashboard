@@ -475,7 +475,7 @@ loop(otx,
    tVatM2.fx(n,t)            = 1;
    tVat.l(i,n,t)            = (tVat0.l(i,n,t) + (tVatD0.l(t) + tVatD1.l(i,t) + tVatD2.l(n,t)))
                               * tVatM0.l(t) * tVatM1.l(i,t) * tVatM2.l(n,t);
-
+display tVat0.l;
 *  Calculate user prices of domestic and imported goods
 
 pda.l(i,t) = (pd.l(i,t) + pmarg.l(i,t)*tmg.l(i,"d",t))*(1 + tvat.l(i,"d",t)) ;
@@ -628,8 +628,8 @@ yg.l("psb",t) = sum(a$aact(a),tpsb.l(a,t)*px.l(a,t)*xp.l(a,t)) ;
 
 yg.l("ptx",t) = sum(a$aact(a),tprd.l(a,t)*px.l(a,t)*xp.l(a,t)) ;
 
-yg.l("otx",t) = sum(i, (pd.l(i,t) + pmarg.l(i,t)*tmg.l(i,"d",t))*tvat.l(i,"d",t)*xd.l(i,t)
-              +  (er.l(t)*pwm.l(i,t)*(1+tImp.l(i,t)) + pmarg.l(i,t)*tmg.l(i,"m",t))*tvat.l(i,"m",t)*xm.l(i,t)) ;
+*yg.l("otx",t) = sum(i, (pd.l(i,t) + pmarg.l(i,t)*tmg.l(i,"d",t))*tvat.l(i,"d",t)*xd.l(i,t)
+*              +  (er.l(t)*pwm.l(i,t)*(1+tImp.l(i,t)) + pmarg.l(i,t)*tmg.l(i,"m",t))*tvat.l(i,"m",t)*xm.l(i,t)) ;
 
 yg.l("mtx",t) = sum(i, (xm.l(i,t) + mdelst.l(i,t))*pwm.l(i,t)*er.l(t)*tImp.l(i,t));
 
@@ -637,10 +637,11 @@ yg.l("dtx",t) = sum(h, tpit.l(h,t)*yh.l(h,t)) + sum(entr, tcit.l(entr,t)*entrY.l
 
 yg.l("atx",t) = sum((i,aa), tpaf.l(i,aa,t)*pa.l(i,t)*xa.l(i,aa,t)) ;
 
+yg.l("etx",t) = sum(i,xe.l(i,t)*pe.l(i,t)*tExp.l(i,t));
+
 yg.l("ftx",t) = sum(a, sum(lnd,tFac.l(a,lnd,t) * pland.l(a,lnd,t)*xf.l(a,lnd,t))
                        + sum(l,tFac.l(a,l,t) * swage.l(a,l,t)*xf.l(a,l,t))
                        + sum((v,cap),tFac.l(a,cap,t) * pk.l(a,v,t)*kd.l(a,v,t)))   ;
-
 
 *Calvin modification toaccount for natural resosurce remunerations payments to government
 ygov.l(t)     = sum((is,gov), sam(gov,is)) ;
@@ -769,13 +770,13 @@ tfpAct.fx(a,t) = 1   ;
 * ----------------------------------------------------------------------------
 
 epsEdu(l,t) = 0;
-epsEdu(l,t)$(not ml(l)) = 0.01464;
-epsEdu(l,t)$(ml(l))     = 0.01464/2;
+*epsEdu(l,t)$(not ml(l)) = 0.01464;
+*epsEdu(l,t)$(ml(l))     = 0.01464/2;
 epsHea(l,t) = 0 ;
-epsHea(l,t)$(not ml(l)) = 0.02571 ;
-epsHea(l,t)$(ml(l))     = 0.02571/2 ;
+*epsHea(l,t)$(not ml(l)) = 0.02571 ;
+*epsHea(l,t)$(ml(l))     = 0.02571/2 ;
 **epsHea(fl,t) = 0.5 ;
-epsCul(fl,t) = 0.0 ;
+epsCul(fl,t) = 0 ;
 
 culIndex(l,t) = 1 ;
 
@@ -1446,9 +1447,14 @@ shra(a) = 0;
 shra('a-agr') = 0.917187897;
 shra('a-frs') = 1- shra('a-agr');
 
-loop(t0,
-EV.l(H,T) = PROD[k,(pkf.l(h,k,t0)/pkf.l(h,k,t))**xkfshr.l(h,k,t)] * [yf.l(h,t)-yf.l(h,t0)] ;
+*loop(t0,
+*EV.l(H,T) = PROD[k,(pkf.l(h,k,t0)/pkf.l(h,k,t))**xkfshr.l(h,k,t)] * [yf.l(h,t)-yf.l(h,t0)] ;
 *EV.l(H,T) = 1;
 *EV.l(H,T) = PROD[k,(pkf.l(h,k,t)/pkf.l(h,k,t))**xkfshr.l(h,k,t)] * [yf.l(h,t)-yf.l(h,t)] ;
-);
+*);
 
+*   ygEmi.l(em,emSrc,aa,t) = tEmi.l(em,aa,t)*emical.l(t)*chiEmi(em,emSrc,aa,t)*rhoEmi(em,emSrc,aa)*phiEmi(em,emSrc,aa)
+*                                 *sum(i$emsrc(i),xa.l(i,aa,t)) ;
+yg.l("ctx",t) =  sum((em,emSrc,aa), tEmi.l(em,aa,t)*emical.l(t)*chiEmi(em,emSrc,aa,t)*rhoEmi(em,emSrc,aa)
+*                                                         *phiEmi(em,emSrc,aa)*sum(i$emsrc(i),xa.l(i,aa,t))) ;
+                                                         *phiEmi(em,emSrc,aa)*xa.l(emSrc,aa,t)) ;

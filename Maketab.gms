@@ -11,11 +11,7 @@ $setGlobal inBaUGDX  "%odir%\BaU.gdx"
 $onmulti
 set sim Simulations to compare /
 BaU
-*Agri10
-Agri20
-*DemD10
-DemD20
-*combine
+carbtax
 / ;
 *$offtext
 *  Set ifCal to 1 for BaU scenarios
@@ -32,8 +28,8 @@ simrep("BaU") = YES;
 *lmb disactivated
 *simrep(sim) = YES;
 *lmb activated
-simrep('Agri20') = YES;
-simrep('DemD20') = YES;
+simrep('carbtax') = YES;
+
 
 *- set 1 to avoid solving demand calibration model
 ifMakeTab = 1 ;

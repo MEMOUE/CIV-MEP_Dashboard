@@ -43,7 +43,7 @@ loop(t$(ts(t) and not ifComp and ord(t) gt 2 and (ifLoad and years(t) gt %lastYe
 
    yh.l(h,t)              = work*yh.l(h,t-1) ;
    savh.l(h,t)            = work*savh.l(h,t-1) ;
-   ev.l(h,t)              = ev.l(h,t-1) ;
+*   ev.l(h,t)              = ev.l(h,t-1) ;
 
    yg.l(g,t)              = work*yg.l(g,t-1) ;
 

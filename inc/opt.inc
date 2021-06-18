@@ -28,7 +28,7 @@ $setglobal RegGtapName VNM
 
 SET
    tf              all time /2018*2100 /
-   t(tf)           sim time / 2018*2050 /
+   t(tf)           sim time / 2018*2040 /
 *   t(tf)           sim time / 2018*2025 /
    t0(t)           Base year / 2018 /
 ;

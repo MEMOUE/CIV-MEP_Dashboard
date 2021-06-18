@@ -74,7 +74,7 @@ resCon("%SimName%","yh",rdim1,"(blank)",tt)=oscale*yh.l(h,tt);
 resCon("%SimName%","laby",rdim1,"(blank)",tt)=oscale*sum(l,chil(h,l,tt)*sum(a$aact(a),swage.l(a,l,tt)*xf.l(a,l,tt)));
 resCon("%SimName%","uh",rdim1,"(blank)",tt)=oscale*uh.l(h,tt);
 resCon("%SimName%","savh",rdim1,"(blank)",tt)=oscale*savh.l(h,tt);
-resCon("%SimName%","EV",rdim1,"(blank)",tt)=oscale*ev.l(h,tt);
+*resCon("%SimName%","EV",rdim1,"(blank)",tt)=oscale*ev.l(h,tt);
 );
 
 Loop((entr,rdim1)$sameas(entr,rdim1),
