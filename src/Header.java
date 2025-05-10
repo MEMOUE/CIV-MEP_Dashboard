@@ -11,7 +11,7 @@ import java.io.File;
  */
 public class Header extends JPanel {
 
-	private JLabel logoLabel;
+	private JLabel ssubtitleLabel;
 	private JLabel titleLabel;
 	private JLabel emblemeLabel;
 	private int leftRightMargin = 25; // Marge à gauche et à droite
@@ -34,19 +34,17 @@ public class Header extends JPanel {
 		mainPanel.setBackground(Color.WHITE);
 		mainPanel.setBorder(new EmptyBorder(0, leftRightMargin, 0, leftRightMargin));
 
-		// Logo on the left with panel
+		// Logo stylisé on the left with panel
 		JPanel logoPanel = new JPanel(new BorderLayout());
 		logoPanel.setBackground(Color.WHITE);
 		logoPanel.setBorder(new EmptyBorder(0, 0, 0, 10)); // Marge à droite du logo
 
-		logoLabel = new JLabel();
-		ImageIcon logoIcon = loadImage("images/logo.png");
-		if (logoIcon != null) {
-			logoIcon = new ImageIcon(logoIcon.getImage().getScaledInstance(120, 80, Image.SCALE_SMOOTH));
-			logoLabel.setIcon(logoIcon);
-		}
-		logoLabel.setPreferredSize(new Dimension(120, 80));
-		logoPanel.add(logoLabel, BorderLayout.CENTER);
+		// Création du label stylisé CIV-MEP avec HTML pour les couleurs
+		ssubtitleLabel = new JLabel("<html><span style='color: #FF8C00; font-family: Segoe Print; font-size: 40pt; font-weight: bold;'>CIV-</span><span style='color: #2ECC71; font-family: Segoe Print; font-size: 40pt; font-weight: bold;'>MEP</span></html>");
+		ssubtitleLabel.setPreferredSize(new Dimension(200, 80));
+		ssubtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		ssubtitleLabel.setVerticalAlignment(SwingConstants.CENTER);
+		logoPanel.add(ssubtitleLabel, BorderLayout.CENTER);
 		mainPanel.add(logoPanel, BorderLayout.WEST);
 
 		// Title in the center with improved styling

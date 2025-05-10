@@ -77,7 +77,7 @@ public class EnergiePage extends JPanel {
 
 		// Vue d'Ensemble du Secteur des Mines
 		java.util.List<String> vueEnsembleMinesList = new ArrayList<>();
-		vueEnsembleMinesList.add("Exportations du Secteur Énergie pwe(i,t) * xe(i,t)");
+		vueEnsembleMinesList.add("Exportations pwe(i,t) * xe(i,t)");
 //		vueEnsembleMinesList.add("Exportations du Secteur Énergie (Hydrocarbures) pwe(i,t) * xe(i,t)");
 //		vueEnsembleMinesList.add("Exportations du Secteur Mines pwe(i,t) * xe(i,t)");
 //		vueEnsembleMinesList.add("Importations du Secteur Énergie (Hydrocarbures) pwm(i,t) * (xm(i,t) + mdelst(i,t))");

@@ -80,7 +80,7 @@ public class Accueil extends JPanel {
 
 		// Second subtitle
 		ssubtitleLabel = new JLabel("CIV-MEP");
-		ssubtitleLabel.setFont(new Font("Arial", Font.BOLD, 48));
+		ssubtitleLabel.setFont(new Font("Segoe Print", Font.BOLD, 48));
 		ssubtitleLabel.setForeground(Color.WHITE);
 		ssubtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 		ssubtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
