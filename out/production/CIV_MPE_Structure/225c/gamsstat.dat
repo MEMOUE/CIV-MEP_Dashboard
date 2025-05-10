@@ -1,0 +1,180 @@
+=0PATH             42.5.0 cf11b917 Mar 30, 2023          WEI x86 64bit/MS Window
+=1
+21143 row/cols, 59604 non-zeros, 0.01% dense.
+
+=2
+Reading parameter(s) from "C:\Users\DELL\projets\Projet_MEGC\CIV_MPE_Structure\path.op2"
+>>  proximal_perturbation 0
+>>  crash_method none
+>>  crash_perturb no
+>>  nms_initial_reference_factor 10
+>>  nms_memory_size 2
+>>  nms_mstep_frequency 1
+Finished reading from "C:\Users\DELL\projets\Projet_MEGC\CIV_MPE_Structure\path.op2"
+=1
+ > crash_method none
+=2
+convergence_tolerance 1e-06
+major_iteration_limit 500
+minor_iteration_limit 10000
+crash_iteration_limit 50
+cumulative_iteration_limit 10000
+time_limit 1e+10
+interrupt_limit 5
+chen_lambda 0.8
+output yes
+output_errors yes
+output_warnings no
+output_major_iterations yes
+output_major_iterations_frequency 1
+output_minor_iterations yes
+output_minor_iterations_frequency 500
+output_crash_iterations yes
+output_crash_iterations_frequency 1
+output_initial_point no
+output_initial_statistics no
+output_initial_point_statistics yes
+output_initial_scaling_statistics yes
+output_final_point no
+output_final_statistics yes
+output_final_point_statistics yes
+output_final_scaling_statistics no
+output_final_degeneracy_statistics no
+output_final_summary yes
+output_maximum_zero_log 10
+output_maximum_zero_listing 1000
+output_restart_log yes
+output_options no
+presolve yes
+output_presolve_level 1
+gradient_step_limit 5
+gradient_searchtype arc
+crash_method none
+crash_perturb no
+crash_searchtype line
+crash_minimum_dimension 1
+crash_nbchange_limit 1
+nms yes
+nms_memory_size 2
+nms_mstep_frequency 1
+nms_initial_reference_factor 10
+nms_searchtype line
+nms_maximum_watchdogs 5
+proximal_perturbation 0
+merit_function fischer
+crash_merit_function fischer
+lemke_start automatic
+lemke_start_type slack
+lemke_rank_deficiency_iterations 10
+output_linear_model no
+=1
+Path 5.0.07 (Thu Mar 30 08:33:18 2023)
+Written by Todd Munson, Steven Dirkse, Youngdae Kim, and Michael Ferris
+=2
+MCP modified basis.
+  ** WARNING **
+Basis modifications: 20790
+
+INITIAL STATISTICS
+Inf-Norm of Complementarity . .  6.5523e-10 eqn: (edseq(c-oil,2026))
+Inf-Norm of Normal Map. . . . .  6.5523e-10 eqn: (edseq(c-oil,2026))
+Inf-Norm of Minimum Map . . . .  6.5523e-10 eqn: (edseq(c-oil,2026))
+Inf-Norm of Fischer Function. .  6.5523e-10 eqn: (edseq(c-oil,2026))
+Inf-Norm of Grad Fischer Fcn. .  2.9112e-09 eqn: (xap2eq(c-hydro,a-equiptv,2026)
+Two-Norm of Grad Fischer Fcn. .  4.4181e-09
+=1
+
+INITIAL POINT STATISTICS
+=2
+=1
+Maximum of X. . . . . . . . . .  1.3923e+02 var: (pswage(a-oxt,f-labmeskl,2026))
+=2
+=1
+Maximum of F. . . . . . . . . .  4.8515e+00 eqn: (rrateq(a-oil,2026))
+=2
+=1
+Maximum of Grad F . . . . . . .  5.6162e+02 eqn: (rrateq(a-oil,2026))
+                                            var: (kxrat(a-oil,2026))
+=2
+=1
+
+INITIAL JACOBIAN NORM STATISTICS
+=2
+=1
+Maximum Row Norm. . . . . . . .  1.5325e+03 eqn: (sectTotEq(2026))
+=2
+=1
+Minimum Row Norm. . . . . . . .  8.5309e-03 eqn: (kapseq(2026,2021))
+=2
+=1
+Maximum Column Norm . . . . . .  6.6025e+02 var: (xf(a-oxt,f-labmeskl,2026))
+=2
+=1
+Minimum Column Norm . . . . . .  3.7470e-01 var: (pva(a-oil,Old,2026))
+=2
+
+Major Iteration Log
+major minor  func  grad  residual    step  type prox    inorm  (label)
+    0     0     1     1 1.0891e-09           I 0.0e+00 6.6e-10 (edseq(c-oil,202)
+=1
+
+FINAL STATISTICS
+=2
+=1
+Inf-Norm of Complementarity . .  6.5523e-10 eqn: (edseq(c-oil,2026))
+=2
+=1
+Inf-Norm of Normal Map. . . . .  6.5523e-10 eqn: (edseq(c-oil,2026))
+=2
+=1
+Inf-Norm of Minimum Map . . . .  6.5523e-10 eqn: (edseq(c-oil,2026))
+=2
+=1
+Inf-Norm of Fischer Function. .  6.5523e-10 eqn: (edseq(c-oil,2026))
+=2
+=1
+Inf-Norm of Grad Fischer Fcn. .  2.9112e-09 eqn: (xap2eq(c-hydro,a-equiptv,2026)
+=2
+=1
+Two-Norm of Grad Fischer Fcn. .  4.4181e-09
+=2
+=1
+
+FINAL POINT STATISTICS
+=2
+=1
+Maximum of X. . . . . . . . . .  1.3923e+02 var: (pswage(a-oxt,f-labmeskl,2026))
+=2
+=1
+Maximum of F. . . . . . . . . .  4.8515e+00 eqn: (rrateq(a-oil,2026))
+=2
+=1
+Maximum of Grad F . . . . . . .  5.6162e+02 eqn: (rrateq(a-oil,2026))
+                                            var: (kxrat(a-oil,2026))
+=2
+
+FINAL JACOBIAN NORM STATISTICS
+Maximum Row Norm. . . . . . . .  1.5325e+03 eqn: (sectTotEq(2026))
+Minimum Row Norm. . . . . . . .  8.5309e-03 eqn: (kapseq(2026,2021))
+Maximum Column Norm . . . . . .  6.6025e+02 var: (xf(a-oxt,f-labmeskl,2026))
+Minimum Column Norm . . . . . .  3.7470e-01 var: (pva(a-oil,Old,2026))
+
+FINAL DEGENERACY STATISTICS
+Total Degenerates . . . . . . .  0
+
+ ** EXIT - solution found.
+
+Major Iterations. . . . 0
+Minor Iterations. . . . 0
+Restarts. . . . . . . . 0
+Crash Iterations. . . . 0
+Gradient Steps. . . . . 0
+Function Evaluations. . 1
+Gradient Evaluations. . 1
+Basis Time. . . . . . . 0.000000
+Total Time. . . . . . . 0.031000
+Residual. . . . . . . . 1.089109e-09
+MCP modified basis.
+=1
+
+=2

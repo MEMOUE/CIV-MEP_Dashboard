@@ -1,0 +1,5 @@
+Input=sim_pi_plus.gms
+ScrDir=225b
+SysDir=C:\GAMS\42
+ScriptNext=225b\gamsnext.cmd
+LogOption=3
