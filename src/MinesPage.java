@@ -48,76 +48,21 @@ public class MinesPage extends JPanel {
 		// Structure de données pour les groupes et leurs indicateurs (inchangée)
 		groupeIndicateurs = new LinkedHashMap<>(); // LinkedHashMap pour conserver l'ordre d'insertion
 
-		// Composantes du PIB Nominal (premier dans l'image)
-//		java.util.List<String> pibNominalList = new ArrayList<>();
-//		pibNominalList.add("Exportations Nominales Agrégées totexp");
-//		pibNominalList.add("Importations Nominales Agrégées totimp");
-//		groupeIndicateurs.put("Composantes du PIB Nominal", pibNominalList);
-
-		// Composantes du PIB Réel (deuxième dans l'image)
-//		java.util.List<String> pibReelList = new ArrayList<>();
-//		pibReelList.add("Consommation Privée Réelle : xfd (h-hhld)");
-//		pibReelList.add("Consommation Publique Réelle : xfd (g-govt)");
-//		pibReelList.add("Exportations Réelles Agrégées : rtotexp");
-//		pibReelList.add("Importations Réelles Agrégées rtotimp");
-//		pibReelList.add("Investissement Privé Réel : xfd (i-invt)");
-//		pibReelList.add("Investissement Public Réel : xfd (i-ginv)");
-//		groupeIndicateurs.put("Composantes du PIB réel", pibReelList);
-
-		// Contributions au PIB (troisième dans l'image)
-//		java.util.List<String> contributionsList = new ArrayList<>();
-//		contributionsList.add("Part Secteur Agricole sectshr(aagr,t)");
-//		contributionsList.add("Part Secteur Électricité (Énergie) sectshr(aagr,t)");
-//		contributionsList.add("Part Secteur Énergie (Hydrocarbures) sectshr(aagr,t)");
-//		contributionsList.add("Part Secteur Manutention (Manufacturier) sectshr(aagr,t)");
-//		contributionsList.add("Part Secteur Mines sectshr(aagr,t)");
-//		contributionsList.add("Part Secteur Services sectshr(aagr,t)");
-//		groupeIndicateurs.put("Contributions au PIB", contributionsList);
-
 		// Vue d'Ensemble du Secteur des Mines
 		java.util.List<String> vueEnsembleMinesList = new ArrayList<>();
-//		vueEnsembleMinesList.add("Exportations du Secteur Électricité (Énergie) pwe(i,t) * xe(i,t)");
-//		vueEnsembleMinesList.add("Exportations du Secteur Énergie (Hydrocarbures) pwe(i,t) * xe(i,t)");
 		vueEnsembleMinesList.add("Exportations pwe(i,t) * xe(i,t)");
-//		vueEnsembleMinesList.add("Importations du Secteur Énergie (Hydrocarbures) pwm(i,t) * (xm(i,t) + mdelst(i,t))");
 		vueEnsembleMinesList.add("Importations pwm(i,t) * (xm(i,t) + mdelst(i,t))");
 		groupeIndicateurs.put("Vue d'Ensemble", vueEnsembleMinesList);
-
 		// Facteurs de production (quatrième dans l'image)
 		java.util.List<String> facteursList = new ArrayList<>();
 		facteursList.add("Masse Salariale d'Emploi Non-Qualifié Swage(a,l,t)");
-//		facteursList.add("Secteur Mines Swage(a,l,t)");
-//		facteursList.add("Secteur Énergie (Hydrocarbures) Swage(a,l,t)");
-//		facteursList.add("Énergie Swage(a,l,t)");
 		facteursList.add("Masse Salariale d'Emploi Qualifié Swage(a,l,t)");
-//		facteursList.add("Secteur Mines Swage(a,l,t)");
-//		facteursList.add("Secteur Énergie (Hydrocarbures) Swage(a,l,t)");
-//		facteursList.add("Électricité (Énergie) Swage(a,l,t)");
 		facteursList.add("Nombre d'Emplois Non-Qualifiés Ls (a,l,t)");
-//		facteursList.add("Mines Ls (a,l,t)");
-//		facteursList.add("Énergie (Hydrocarbures) Ls (a,l,t)");
-//		facteursList.add("Électricité (Énergie) Ls (a,l,t)");
 		facteursList.add("Nombre d'Emplois Qualifiés Ls (a,l,t)"); //todo fusion Nombres d'emplois qualifiés et semi-qualifiés
-//		facteursList.add("Mines Ls (a,l,t)");
-//		facteursList.add("Énergie (Hydrocarbures) Ls (a,l,t)");
-//		facteursList.add("Électricité (Énergie) Ls (a,l,t)");
-//		facteursList.add("Nombre d'Emplois Semi-Qualifiés Ls (a,l,t)");
 //		facteursList.add("Mines Ls (a,l,t)"); // todo fusion Nombres d'emplois qualifiés et semi-qualifiés
-//		facteursList.add("Hydrocarbures Ls (a,l,t)");
-//		facteursList.add("Électricité (Énergie) Ls (a,l,t)");
 		facteursList.add("Nombre Total d'Emplois somme des ls"); // TODO Calculer le nombre total d'emplois en faisant la somme des ls
 		facteursList.add("Valeur du Capital sum(cap,pk_pt(a,v,t)*xf(a,cap,t))");
-//		facteursList.add("Valeur du Capital Secteur Énergie (Hydrocarbures) sum(cap,pk_pt(a,v,t)*xf(a,cap,t))");
-//		facteursList.add("Valeur du Capital Secteur Électricité (Énergie) sum(cap,pk_pt(a,v,t)*xf(a,cap,t))");
 		groupeIndicateurs.put("Facteurs de Production", facteursList);
-
-
-
-		// Vue d'Ensemble Macroéconomique
-//		java.util.List<String> vueEnsembleMacroList = new ArrayList<>();
-//		vueEnsembleMacroList.add("PIB Nominal gdpmp");
-//		vueEnsembleMacroList.add("PIB Réel rgdpmp");
-//		groupeIndicateurs.put("Vue d'Ensemble Macroéconomique", vueEnsembleMacroList);
 	}
 
 	private void initComponents() {

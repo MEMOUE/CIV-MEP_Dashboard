@@ -6,10 +6,14 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
+import java.io.File;
+
+// Import GAMS API
+import com.gams.api.*;
 
 /**
  * Résultats Généraux page component for the MMPE Dashboard
- * Version améliorée avec style compact et options d'affichage
+ * Version améliorée avec style compact et options d'affichage et intégration GDX dynamique
  */
 public class ResultatsPage extends JPanel {
 	// Constantes de couleurs pour un design cohérent
@@ -25,6 +29,11 @@ public class ResultatsPage extends JPanel {
 	private static final int INDICATEUR_HEIGHT = 25;
 	private static final int INDICATEUR_WIDTH = 400; // Largeur réduite pour les indicateurs
 
+	// Chemins des fichiers GDX
+	private static final String GDX_BAU_PATH = "../CIV_MPE_Structure/res/BaU.gdx";
+	private static final String GDX_PI_PATH = "../CIV_MPE_Structure/res/pi.gdx";
+	private static final String GDX_PI_PLUS_PATH = "../CIV_MPE_Structure/res/pi_plus.gdx";
+
 	// Composants principaux
 	private JPanel indicateursPanel;
 	private JScrollPane indicateursScroll;
@@ -38,14 +47,41 @@ public class ResultatsPage extends JPanel {
 	private JCheckBox optionBAUPI;
 	private JCheckBox optionBAUPIPlus;
 
+	// Bouton pour rafraîchir les données
+	private JButton refreshButton;
+
+	// Stockage des données GDX
+	private Map<String, Map<String, Map<String, double[]>>> donnees;
+	private String[] annees; // Pour stocker les années (t)
+
+	// Mapping des indicateurs vers les symboles GDX
+	private Map<String, String> mappingIndicateurs;
+
+	// Indicateur actuellement sélectionné
+	private String currentIndicateur = "";
+
 	public ResultatsPage() {
+		initMappingIndicateurs();
 		initData();
 		initComponents();
+		chargerDonnees();
+	}
+
+	private void initMappingIndicateurs() {
+		mappingIndicateurs = new HashMap<>();
+		// Mapping des indicateurs vers les symboles GDX (variables et paramètres)
+		mappingIndicateurs.put("PIB Nominal gdpmp", "gdpmp");
+		mappingIndicateurs.put("PIB Réel rgdpmp", "rgdpmp");
+		mappingIndicateurs.put("Exportations Nominales Agrégées totexp", "totexp");
+		mappingIndicateurs.put("Importations Nominales Agrégées totimp", "totimp");
+		mappingIndicateurs.put("Exportations Réelles Agrégées : rtotexp", "rtotexp");
+		mappingIndicateurs.put("Importations Réelles Agrégées rtotimp", "rtotimp");
+		// Ajoutez d'autres mappings au besoin
 	}
 
 	private void initData() {
-		// Structure de données pour les groupes et leurs indicateurs (inchangée)
 		groupeIndicateurs = new LinkedHashMap<>(); // LinkedHashMap pour conserver l'ordre d'insertion
+		donnees = new HashMap<>();
 
 		// Vue d'Ensemble Macroéconomique
 		List<String> vueEnsembleMacroList = new ArrayList<>();
@@ -59,7 +95,6 @@ public class ResultatsPage extends JPanel {
 		facteursList.add("Masse Salariale d'Emploi Qualifié Wage(l,t)"); // todo fusion de la masse salariale d'emploi qualifié et semi-qualifié
 		facteursList.add("Nombre d'Emplois Non-Qualifiés lst(l,t)");
 		facteursList.add("Nombre d'Emplois Qualifiés lst(l,t)");  // todo fusion du nombre d'emplois qualifiés et semi-qualifiés
-//		facteursList.add("Nombre d'Emplois Semi-Qualifiés lst(l,t)");
 		facteursList.add("Nombre Total d'Emplois somme des ls");
 		groupeIndicateurs.put("Facteurs de Production", facteursList);
 
@@ -81,23 +116,187 @@ public class ResultatsPage extends JPanel {
 
 		// Contributions au PIB (troisième dans l'image)
 		List<String> contributionsList = new ArrayList<>();
+		contributionsList.add("Part Secteur Mines, Hydrocarbures et Énergie sectshr(aagr,t)");//TODO la somme de mine, hydrocarbure et énergie(mine+ener+electr)
 		contributionsList.add("Part Secteur Agricole sectshr(aagr,t)");
-		contributionsList.add("Part Secteur Énergie sectshr(aagr,t)");
-		contributionsList.add("Part Secteur Hydrocarbures sectshr(aagr,t)");
 		contributionsList.add("Part Secteur Manufacturier sectshr(aagr,t)");
-		contributionsList.add("Part Secteur Mines sectshr(aagr,t)");
 		contributionsList.add("Part Secteur Services sectshr(aagr,t)");
 		groupeIndicateurs.put("Contributions au PIB", contributionsList);
+	}
 
+	private void chargerDonnees() {
+		try {
+			// Réinitialiser les données existantes
+			donnees.clear();
 
-		// Vue d'Ensemble du Secteur des Mines
-//		List<String> vueEnsembleMinesList = new ArrayList<>();
-//		vueEnsembleMinesList.add("Exportations du Secteur Électricité (Énergie) pwe(i,t) * xe(i,t)");
-//		vueEnsembleMinesList.add("Exportations du Secteur Énergie (Hydrocarbures) pwe(i,t) * xe(i,t)");
-//		vueEnsembleMinesList.add("Exportations du Secteur Mines pwe(i,t) * xe(i,t)");
-//		vueEnsembleMinesList.add("Importations du Secteur Énergie (Hydrocarbures) pwm(i,t) * (xm(i,t) + mdelst(i,t))");
-//		vueEnsembleMinesList.add("Importations du Secteur Mines pwm(i,t) * (xm(i,t) + mdelst(i,t))");
-//		groupeIndicateurs.put("Vue d'Ensemble du Secteur des Mines", vueEnsembleMinesList);
+			// Vérifier si les fichiers existent
+			File bauFile = new File(GDX_BAU_PATH);
+			File piFile = new File(GDX_PI_PATH);
+			File piPlusFile = new File(GDX_PI_PLUS_PATH);
+
+			System.out.println("Chargement des fichiers GDX:");
+			System.out.println("BAU: " + bauFile.getAbsolutePath() + " (existe: " + bauFile.exists() + ")");
+			System.out.println("PI: " + piFile.getAbsolutePath() + " (existe: " + piFile.exists() + ")");
+			System.out.println("PI_PLUS: " + piPlusFile.getAbsolutePath() + " (existe: " + piPlusFile.exists() + ")");
+
+			if (!bauFile.exists() || !piFile.exists() || !piPlusFile.exists()) {
+				JOptionPane.showMessageDialog(this,
+						"Un ou plusieurs fichiers GDX n'ont pas été trouvés.\nBAU: " + bauFile.getAbsolutePath() +
+								"\nPI: " + piFile.getAbsolutePath() +
+								"\nPI_PLUS: " + piPlusFile.getAbsolutePath(),
+						"Erreur de chargement", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			// Initialiser l'environnement GAMS
+			GAMSWorkspace ws = new GAMSWorkspace();
+
+			// Charger les trois bases de données
+			GAMSDatabase dbBAU = ws.addDatabaseFromGDX(GDX_BAU_PATH);
+			GAMSDatabase dbPI = ws.addDatabaseFromGDX(GDX_PI_PATH);
+			GAMSDatabase dbPIPLUS = ws.addDatabaseFromGDX(GDX_PI_PLUS_PATH);
+
+			// Lister quelques symboles du fichier GDX pour le débogage
+			System.out.println("Analyse du fichier BAU...");
+			List<String> symbolNames = new ArrayList<>();
+			for (GAMSSymbol symbol : dbBAU) {
+				symbolNames.add(symbol.getName());
+			}
+			System.out.println("Symboles trouvés: " + symbolNames);
+
+			// Récupérer le set des périodes (t)
+			GAMSSet setT = null;
+			try {
+				setT = dbBAU.getSet("t");
+				System.out.println("Set 't' trouvé avec succès.");
+			} catch (Exception e) {
+				System.out.println("Set 't' non trouvé. Recherche d'alternatives...");
+				// Chercher parmi tous les sets disponibles
+				for (GAMSSymbol symbol : dbBAU) {
+					try {
+						// Essayer de caster en GAMSSet
+						GAMSSet potentialSet = (GAMSSet)symbol;
+						System.out.println("Set candidat trouvé: " + symbol.getName());
+						// Si nous trouvons un set qui pourrait représenter les périodes
+						setT = potentialSet;
+						break;
+					} catch (ClassCastException cce) {
+						// Pas un set, continuer
+					}
+				}
+			}
+
+			if (setT == null) {
+				JOptionPane.showMessageDialog(this,
+						"Impossible de trouver le set des périodes dans les fichiers GDX.",
+						"Erreur de chargement", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			// Extraire les périodes - utiliser une approche dynamique
+			List<String> anneesTemp = new ArrayList<>();
+			for (GAMSSetRecord record : setT) {
+				anneesTemp.add(record.getKeys()[0]);
+			}
+			annees = anneesTemp.toArray(new String[0]);
+
+			System.out.println("Périodes trouvées (" + annees.length + "): " + Arrays.toString(annees));
+
+			// Découvrir dynamiquement les symboles disponibles et les ajouter au mapping
+			Set<String> symbolesTrouves = new HashSet<>();
+			for (GAMSSymbol symbol : dbBAU) {
+				symbolesTrouves.add(symbol.getName());
+			}
+			System.out.println("Symboles disponibles dans GDX: " + symbolesTrouves);
+
+			// Charger les données pour chaque indicateur mappé
+			for (Map.Entry<String, String> entry : mappingIndicateurs.entrySet()) {
+				String indicateur = entry.getKey();
+				String symboleGDX = entry.getValue();
+
+				// Vérifier si le symbole existe dans le fichier
+				if (!symbolesTrouves.contains(symboleGDX)) {
+					System.out.println("Symbole " + symboleGDX + " non trouvé dans le fichier GDX, ignoré.");
+					continue;
+				}
+
+				Map<String, Map<String, double[]>> donneesIndicateur = new HashMap<>();
+
+				try {
+					// Essayer de charger les données en tant que variable
+					Map<String, double[]> donneesBAU = chargerVariable(dbBAU, symboleGDX);
+					Map<String, double[]> donneesPI = chargerVariable(dbPI, symboleGDX);
+					Map<String, double[]> donneesPIPLUS = chargerVariable(dbPIPLUS, symboleGDX);
+
+					donneesIndicateur.put("BAU", donneesBAU);
+					donneesIndicateur.put("PI", donneesPI);
+					donneesIndicateur.put("PI_PLUS", donneesPIPLUS);
+
+					donnees.put(indicateur, donneesIndicateur);
+					System.out.println("Données chargées avec succès pour l'indicateur: " + indicateur);
+				} catch (Exception e) {
+					System.out.println("Erreur lors du chargement du symbole " + symboleGDX + ": " + e.getMessage());
+					e.printStackTrace();
+					// Continuer avec le prochain indicateur
+				}
+			}
+
+			System.out.println("Toutes les données ont été chargées.");
+
+			// Mettre à jour les graphiques après le chargement
+			if (!currentIndicateur.isEmpty()) {
+				updateGraphiques(currentGroupe, currentIndicateur);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this,
+					"Erreur lors du chargement des données: " + e.getMessage(),
+					"Erreur", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private Map<String, double[]> chargerVariable(GAMSDatabase db, String nomSymbole) {
+		Map<String, double[]> resultat = new HashMap<>();
+
+		try {
+			// Essayer de charger comme variable
+			GAMSVariable var = db.getVariable(nomSymbole);
+			System.out.println("Variable " + nomSymbole + " trouvée avec " + var.getNumberOfRecords() + " enregistrements");
+
+			// Créer un tableau pour stocker les valeurs du niveau (Level)
+			double[] valeurs = new double[annees.length];
+
+			// Pour chaque période
+			for (int i = 0; i < annees.length; i++) {
+				String periode = annees[i];
+
+				try {
+					// Trouver l'enregistrement pour cette période
+					GAMSVariableRecord record = var.findRecord(periode);
+					if (record != null) {
+						// Obtenir la valeur de l'attribut Level
+						valeurs[i] = record.getLevel();
+						//System.out.println(nomSymbole + " pour " + periode + ": " + valeurs[i]);
+					} else {
+						System.out.println("Pas d'enregistrement trouvé pour " + nomSymbole + ", période " + periode);
+						valeurs[i] = 0.0;
+					}
+				} catch (Exception e) {
+					System.out.println("Erreur pour " + nomSymbole + ", période " + periode + ": " + e.getMessage());
+					valeurs[i] = 0.0;
+				}
+			}
+
+			// Stocker les valeurs sous "Level" pour la cohérence avec le reste du code
+			resultat.put("Level", valeurs);
+
+		} catch (Exception e) {
+			System.out.println("Erreur lors du chargement de " + nomSymbole + ": " + e.getMessage());
+			e.printStackTrace();
+			throw e; // Propager l'erreur pour informer l'appelant
+		}
+
+		return resultat;
 	}
 
 	private void initComponents() {
@@ -105,7 +304,7 @@ public class ResultatsPage extends JPanel {
 		setBackground(BACKGROUND_COLOR);
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		// Titre principal
+		// Titre principal avec bouton de rafraîchissement
 		JPanel headerPanel = new JPanel(new BorderLayout());
 		headerPanel.setOpaque(false);
 
@@ -116,6 +315,21 @@ public class ResultatsPage extends JPanel {
 		titleLabel.setOpaque(true);
 		titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		headerPanel.add(titleLabel, BorderLayout.CENTER);
+
+		// Ajouter un bouton de rafraîchissement
+		refreshButton = new JButton("Rafraîchir");
+		refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
+		refreshButton.addActionListener(e -> {
+			// Recharger les données des fichiers GDX
+			chargerDonnees();
+			JOptionPane.showMessageDialog(this,
+					"Données rechargées avec succès.",
+					"Rafraîchissement", JOptionPane.INFORMATION_MESSAGE);
+		});
+		JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		refreshPanel.setOpaque(false);
+		refreshPanel.add(refreshButton);
+		headerPanel.add(refreshPanel, BorderLayout.EAST);
 
 		add(headerPanel, BorderLayout.NORTH);
 
@@ -314,6 +528,11 @@ public class ResultatsPage extends JPanel {
 		SwingUtilities.invokeLater(() -> {
 			indicateursScroll.getVerticalScrollBar().setValue(0);
 		});
+
+		// Sélectionner le premier indicateur par défaut
+		if (indicateurs != null && !indicateurs.isEmpty()) {
+			updateGraphiques(groupe, indicateurs.get(0));
+		}
 	}
 
 	private JButton createIndicateurButton(String indicateur) {
@@ -329,13 +548,16 @@ public class ResultatsPage extends JPanel {
 		button.setMinimumSize(new Dimension(INDICATEUR_WIDTH, INDICATEUR_HEIGHT));
 		button.setMaximumSize(new Dimension(INDICATEUR_WIDTH, INDICATEUR_HEIGHT));
 
-		// Présélectionner certains indicateurs pour correspondre à l'image
+		// Présélectionner certains indicateurs
 		boolean isSelected = false;
 		if (currentGroupe.equals("Composantes du PIB Nominal") &&
 				indicateur.equals("Importations Nominales Agrégées totimp")) {
 			isSelected = true;
-		} else if (currentGroupe.equals("Composantes du PIB réel") &&
+		} else if (currentGroupe.equals("Composantes du PIB Réel") &&
 				indicateur.startsWith("Importations Réelles Agrégées")) {
+			isSelected = true;
+		} else if (currentGroupe.equals("Vue d'Ensemble Macroéconomique") &&
+				indicateur.equals("PIB Nominal gdpmp")) {
 			isSelected = true;
 		}
 
@@ -352,6 +574,9 @@ public class ResultatsPage extends JPanel {
 
 			// Sélectionner cet indicateur
 			button.setBackground(SELECTED_BACKGROUND);
+
+			// Mettre à jour l'indicateur courant
+			currentIndicateur = indicateur;
 
 			// Mettre à jour les graphiques
 			updateGraphiques(currentGroupe, indicateur);
@@ -390,7 +615,6 @@ public class ResultatsPage extends JPanel {
 	}
 
 	private void drawEvolutionsComparees(Graphics g) {
-		// Dessiner le graphique des évolutions comparées en tenant compte des options sélectionnées
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -402,119 +626,281 @@ public class ResultatsPage extends JPanel {
 		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
 		g2d.drawLine(50, height - 50, 50, 20); // axe Y
 
-		// Barres (simulation)
-		g2d.setColor(new Color(180, 0, 0));
-		for (int i = 0; i < 20; i++) {
-			int barHeight = (int) (Math.pow(1.2, i) * 10);
-			if (barHeight > height - 100) barHeight = height - 100;
-			g2d.fillRect(60 + i * ((width - 80) / 20), height - 50 - barHeight, 10, barHeight);
+		// Récupérer les données de l'indicateur sélectionné
+		Map<String, Map<String, double[]>> donneesIndicateur = donnees.get(currentIndicateur);
+
+		if (donneesIndicateur == null || annees == null || annees.length == 0) {
+			// Pas de données disponibles
+			g2d.setColor(Color.RED);
+			g2d.drawString("Données non disponibles pour " + currentIndicateur, width/2 - 100, height/2);
+			return;
 		}
 
-		// Étiquettes années
+		// Trouver le maximum pour l'échelle
+		double maxValue = 0;
+		if (optionBAU.isSelected() && donneesIndicateur.containsKey("BAU")) {
+			for (double val : donneesIndicateur.get("BAU").get("Level")) {
+				maxValue = Math.max(maxValue, val);
+			}
+		}
+		if (optionBAUPI.isSelected() && donneesIndicateur.containsKey("PI")) {
+			for (double val : donneesIndicateur.get("PI").get("Level")) {
+				maxValue = Math.max(maxValue, val);
+			}
+		}
+		if (optionBAUPIPlus.isSelected() && donneesIndicateur.containsKey("PI_PLUS")) {
+			for (double val : donneesIndicateur.get("PI_PLUS").get("Level")) {
+				maxValue = Math.max(maxValue, val);
+			}
+		}
+
+		if (maxValue == 0) {
+			g2d.setColor(Color.RED);
+			g2d.drawString("Aucune donnée à afficher pour les options sélectionnées", width/2 - 150, height/2);
+			return;
+		}
+
+		// Arrondir le maximum pour une meilleure échelle
+		maxValue = Math.ceil(maxValue * 1.1); // Ajouter 10% de marge
+
+		// Échelle
+		double scale = (height - 100) / maxValue;
+
+		// Largeur des barres - dépend du nombre d'années
+		int totalBarWidth = Math.max(1, (width - 120) / annees.length - 10);
+		int barWidth = Math.min(10, totalBarWidth / 3);
+		int barGap = Math.max(1, barWidth / 2);
+
+		// Dessiner les barres pour chaque année
+		for (int i = 0; i < annees.length; i++) {
+			int xPos = 60 + i * ((width - 120) / annees.length);
+			int barCount = 0;
+
+			// BAU
+			if (optionBAU.isSelected() && donneesIndicateur.containsKey("BAU") &&
+					i < donneesIndicateur.get("BAU").get("Level").length) {
+				double val = donneesIndicateur.get("BAU").get("Level")[i];
+				int barHeight = (int)(val * scale);
+				g2d.setColor(new Color(0, 0, 180));
+				g2d.fillRect(xPos + barCount * (barWidth + barGap),
+						height - 50 - barHeight, barWidth, barHeight);
+				barCount++;
+			}
+
+			// BAU PI
+			if (optionBAUPI.isSelected() && donneesIndicateur.containsKey("PI") &&
+					i < donneesIndicateur.get("PI").get("Level").length) {
+				double val = donneesIndicateur.get("PI").get("Level")[i];
+				int barHeight = (int)(val * scale);
+				g2d.setColor(new Color(180, 0, 0));
+				g2d.fillRect(xPos + barCount * (barWidth + barGap),
+						height - 50 - barHeight, barWidth, barHeight);
+				barCount++;
+			}
+
+			// BAU PI PLUS
+			if (optionBAUPIPlus.isSelected() && donneesIndicateur.containsKey("PI_PLUS") &&
+					i < donneesIndicateur.get("PI_PLUS").get("Level").length) {
+				double val = donneesIndicateur.get("PI_PLUS").get("Level")[i];
+				int barHeight = (int)(val * scale);
+				g2d.setColor(new Color(0, 150, 0));
+				g2d.fillRect(xPos + barCount * (barWidth + barGap),
+						height - 50 - barHeight, barWidth, barHeight);
+			}
+		}
+
+		// Étiquettes années (afficher seulement certaines années pour éviter l'encombrement)
 		g2d.setColor(Color.BLACK);
 		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		for (int i = 0; i < 20; i += 2) {
-			g2d.drawString("20" + (i+21), 60 + i * ((width - 80) / 20), height - 35);
-		}
-
-		// Légende
-		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Delta - min", 60, 15);
-		g2d.setColor(new Color(180, 0, 0));
-		g2d.fillRect(120, 10, 10, 10);
-
-		// Afficher les options d'affichage sélectionnées
-		g2d.setColor(Color.BLACK);
-		g2d.setFont(new Font("Arial", Font.PLAIN, 9));
-
-		StringBuilder options = new StringBuilder("Options: ");
-		if (optionBAU.isSelected()) options.append("BAU ");
-		if (optionBAUPI.isSelected()) options.append("BAU PI ");
-		if (optionBAUPIPlus.isSelected()) options.append("BAU PI PLUS ");
-
-		g2d.drawString(options.toString(), width - 180, 15);
-	}
-
-	private void drawEvolutionsAnnuelles(Graphics g) {
-		// Dessiner le graphique des évolutions annuelles en tenant compte des options sélectionnées
-		Graphics2D g2d = (Graphics2D) g;
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		int width = g.getClipBounds().width;
-		int height = g.getClipBounds().height;
-
-		// Axes
-		g2d.setColor(Color.BLACK);
-		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
-		g2d.drawLine(50, height - 50, 50, 20); // axe Y
-
-		// Préparer les tableaux pour les courbes
-		int[] pointsX = new int[20];
-		List<int[]> allPointsY = new ArrayList<>();
-		List<Color> curveColors = new ArrayList<>();
-
-		// Définir les courbes à afficher en fonction des options sélectionnées
-		if (optionBAU.isSelected()) {
-			int[] pointsY1 = new int[20];
-			for (int i = 0; i < 20; i++) {
-				pointsY1[i] = height - 50 - (int)(Math.log(i+1) * 50);
-			}
-			allPointsY.add(pointsY1);
-			curveColors.add(new Color(0, 0, 180)); // BAU en bleu
-		}
-
-		if (optionBAUPI.isSelected()) {
-			int[] pointsY2 = new int[20];
-			for (int i = 0; i < 20; i++) {
-				pointsY2[i] = height - 50 - (int)(Math.log(i+1) * 55);
-			}
-			allPointsY.add(pointsY2);
-			curveColors.add(new Color(180, 0, 0)); // BAU PI en rouge
-		}
-
-		if (optionBAUPIPlus.isSelected()) {
-			int[] pointsY3 = new int[20];
-			for (int i = 0; i < 20; i++) {
-				pointsY3[i] = height - 50 - (int)(Math.log(i+1) * 60);
-			}
-			allPointsY.add(pointsY3);
-			curveColors.add(new Color(0, 150, 0)); // BAU PI PLUS en vert
-		}
-
-		// Calculer les positions X
-		for (int i = 0; i < 20; i++) {
-			pointsX[i] = 50 + i * ((width - 70) / 19);
-		}
-
-		// Dessiner les courbes
-		for (int curveIndex = 0; curveIndex < allPointsY.size(); curveIndex++) {
-			int[] pointsY = allPointsY.get(curveIndex);
-			g2d.setColor(curveColors.get(curveIndex));
-			g2d.setStroke(new BasicStroke(2.0f));
-
-			// Tracer la ligne
-			for (int i = 0; i < 19; i++) {
-				g2d.drawLine(pointsX[i], pointsY[i], pointsX[i+1], pointsY[i+1]);
-			}
-
-			// Ajouter les points
-			for (int i = 0; i < 20; i++) {
-				g2d.fillOval(pointsX[i]-3, pointsY[i]-3, 6, 6);
-			}
-		}
-
-		// Étiquettes années
-		g2d.setColor(Color.BLACK);
-		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		for (int i = 0; i < 20; i += 2) {
-			g2d.drawString("20" + (i+21), pointsX[i], height - 35);
+		int skipFactor = Math.max(1, annees.length / 10); // Afficher environ 10 étiquettes
+		for (int i = 0; i < annees.length; i += skipFactor) {
+			int xPos = 60 + i * ((width - 120) / annees.length);
+			g2d.drawString(annees[i], xPos, height - 35);
 		}
 
 		// Légende
 		int legendX = 60;
 		int legendY = 15;
+		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
 
+		if (optionBAU.isSelected()) {
+			g2d.setColor(new Color(0, 0, 180));
+			g2d.fillRect(legendX, legendY - 8, 10, 10);
+			g2d.setColor(Color.BLACK);
+			g2d.drawString("BAU", legendX + 15, legendY);
+			legendX += 60;
+		}
+
+		if (optionBAUPI.isSelected()) {
+			g2d.setColor(new Color(180, 0, 0));
+			g2d.fillRect(legendX, legendY - 8, 10, 10);
+			g2d.setColor(Color.BLACK);
+			g2d.drawString("BAU PI", legendX + 15, legendY);
+			legendX += 60;
+		}
+
+		if (optionBAUPIPlus.isSelected()) {
+			g2d.setColor(new Color(0, 150, 0));
+			g2d.fillRect(legendX, legendY - 8, 10, 10);
+			g2d.setColor(Color.BLACK);
+			g2d.drawString("BAU PI PLUS", legendX + 15, legendY);
+		}
+
+		// Titre de l'indicateur
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.BOLD, 10));
+		g2d.drawString(currentIndicateur, width - 280, 15);
+
+		// Dessiner les graduations sur l'axe Y
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
+		int nbGraduations = 5;
+		for (int i = 0; i <= nbGraduations; i++) {
+			int y = height - 50 - (i * (height - 70) / nbGraduations);
+			g2d.drawLine(47, y, 50, y);
+			double valeur = (i * maxValue / nbGraduations);
+			g2d.drawString(String.format("%.1f", valeur), 10, y + 4);
+		}
+	}
+
+	private void drawEvolutionsAnnuelles(Graphics g) {
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		int width = g.getClipBounds().width;
+		int height = g.getClipBounds().height;
+
+		// Axes
+		g2d.setColor(Color.BLACK);
+		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
+		g2d.drawLine(50, height - 50, 50, 20); // axe Y
+
+		// Récupérer les données de l'indicateur sélectionné
+		Map<String, Map<String, double[]>> donneesIndicateur = donnees.get(currentIndicateur);
+
+		if (donneesIndicateur == null || annees == null || annees.length == 0) {
+			// Pas de données disponibles
+			g2d.setColor(Color.RED);
+			g2d.drawString("Données non disponibles pour " + currentIndicateur, width/2 - 100, height/2);
+			return;
+		}
+
+		// Préparer les tableaux pour les courbes
+		int[] pointsX = new int[annees.length];
+
+		// Calculer les positions X
+		for (int i = 0; i < annees.length; i++) {
+			pointsX[i] = 50 + i * ((width - 70) / Math.max(1, annees.length - 1));
+		}
+
+		// Trouver le maximum pour l'échelle
+		double maxValue = 0;
+		if (optionBAU.isSelected() && donneesIndicateur.containsKey("BAU")) {
+			for (double val : donneesIndicateur.get("BAU").get("Level")) {
+				maxValue = Math.max(maxValue, val);
+			}
+		}
+		if (optionBAUPI.isSelected() && donneesIndicateur.containsKey("PI")) {
+			for (double val : donneesIndicateur.get("PI").get("Level")) {
+				maxValue = Math.max(maxValue, val);
+			}
+		}
+		if (optionBAUPIPlus.isSelected() && donneesIndicateur.containsKey("PI_PLUS")) {
+			for (double val : donneesIndicateur.get("PI_PLUS").get("Level")) {
+				maxValue = Math.max(maxValue, val);
+			}
+		}
+
+		if (maxValue == 0) {
+			g2d.setColor(Color.RED);
+			g2d.drawString("Aucune donnée à afficher pour les options sélectionnées", width/2 - 150, height/2);
+			return;
+		}
+
+		// Arrondir le maximum pour une meilleure échelle
+		maxValue = Math.ceil(maxValue * 1.1); // Ajouter 10% de marge
+
+		// Échelle
+		double scale = (height - 100) / maxValue;
+
+		// Dessiner les courbes
+		// BAU
+		if (optionBAU.isSelected() && donneesIndicateur.containsKey("BAU")) {
+			g2d.setColor(new Color(0, 0, 180));
+			g2d.setStroke(new BasicStroke(2.0f));
+
+			double[] values = donneesIndicateur.get("BAU").get("Level");
+			int[] pointsY = new int[Math.min(annees.length, values.length)];
+			for (int i = 0; i < pointsY.length; i++) {
+				pointsY[i] = height - 50 - (int)(values[i] * scale);
+			}
+
+			// Tracer la ligne
+			for (int i = 0; i < pointsY.length - 1; i++) {
+				g2d.drawLine(pointsX[i], pointsY[i], pointsX[i+1], pointsY[i+1]);
+			}
+
+			// Ajouter les points
+			for (int i = 0; i < pointsY.length; i++) {
+				g2d.fillOval(pointsX[i] - 3, pointsY[i] - 3, 6, 6);
+			}
+		}
+
+		// BAU PI
+		if (optionBAUPI.isSelected() && donneesIndicateur.containsKey("PI")) {
+			g2d.setColor(new Color(180, 0, 0));
+			g2d.setStroke(new BasicStroke(2.0f));
+
+			double[] values = donneesIndicateur.get("PI").get("Level");
+			int[] pointsY = new int[Math.min(annees.length, values.length)];
+			for (int i = 0; i < pointsY.length; i++) {
+				pointsY[i] = height - 50 - (int)(values[i] * scale);
+			}
+
+			// Tracer la ligne
+			for (int i = 0; i < pointsY.length - 1; i++) {
+				g2d.drawLine(pointsX[i], pointsY[i], pointsX[i+1], pointsY[i+1]);
+			}
+
+			// Ajouter les points
+			for (int i = 0; i < pointsY.length; i++) {
+				g2d.fillOval(pointsX[i] - 3, pointsY[i] - 3, 6, 6);
+			}
+		}
+
+		// BAU PI PLUS
+		if (optionBAUPIPlus.isSelected() && donneesIndicateur.containsKey("PI_PLUS")) {
+			g2d.setColor(new Color(0, 150, 0));
+			g2d.setStroke(new BasicStroke(2.0f));
+
+			double[] values = donneesIndicateur.get("PI_PLUS").get("Level");
+			int[] pointsY = new int[Math.min(annees.length, values.length)];
+			for (int i = 0; i < pointsY.length; i++) {
+				pointsY[i] = height - 50 - (int)(values[i] * scale);
+			}
+
+			// Tracer la ligne
+			for (int i = 0; i < pointsY.length - 1; i++) {
+				g2d.drawLine(pointsX[i], pointsY[i], pointsX[i+1], pointsY[i+1]);
+			}
+
+			// Ajouter les points
+			for (int i = 0; i < pointsY.length; i++) {
+				g2d.fillOval(pointsX[i] - 3, pointsY[i] - 3, 6, 6);
+			}
+		}
+
+		// Étiquettes années (afficher seulement certaines années pour éviter l'encombrement)
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
+		int skipFactor = Math.max(1, annees.length / 10); // Afficher environ 10 étiquettes
+		for (int i = 0; i < annees.length; i += skipFactor) {
+			g2d.drawString(annees[i], pointsX[i] - 10, height - 35);
+		}
+
+		// Légende
+		int legendX = 60;
+		int legendY = 15;
 		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
 
 		if (optionBAU.isSelected()) {
@@ -536,15 +922,34 @@ public class ResultatsPage extends JPanel {
 			g2d.drawString("BAU PI PLUS", legendX, legendY);
 			g2d.fillOval(legendX + 70, legendY - 5, 6, 6);
 		}
+
+		// Titre de l'indicateur
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.BOLD, 10));
+		g2d.drawString(currentIndicateur, width - 280, 15);
+
+		// Dessiner les graduations sur l'axe Y
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
+		int nbGraduations = 5;
+		for (int i = 0; i <= nbGraduations; i++) {
+			int y = height - 50 - (i * (height - 70) / nbGraduations);
+			g2d.drawLine(47, y, 50, y);
+			double valeur = (i * maxValue / nbGraduations);
+			g2d.drawString(String.format("%.1f", valeur), 10, y + 4);
+		}
 	}
 
 	private void updateGraphiques(String groupe, String indicateur) {
-		// Mettre à jour les graphiques en fonction de l'indicateur sélectionné et des options d'affichage
 		System.out.println("Mise à jour des graphiques pour: " + groupe + " - " + indicateur);
 		System.out.println("Options: BAU=" + optionBAU.isSelected() +
 				", BAU PI=" + optionBAUPI.isSelected() +
 				", BAU PI PLUS=" + optionBAUPIPlus.isSelected());
 
+		// Mettre à jour l'indicateur courant
+		currentIndicateur = indicateur;
+
+		// Mettre à jour les graphiques
 		evolCompPanel.repaint();
 		evolAnnPanel.repaint();
 	}
@@ -621,5 +1026,4 @@ public class ResultatsPage extends JPanel {
 			}
 		}
 	}
-
 }
