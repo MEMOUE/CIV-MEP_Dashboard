@@ -79,9 +79,9 @@ public class ResultatsPage extends JPanel {
 		// Mapping des indicateurs simples vers les symboles GDX
 		mappingIndicateurs.put("PIB Nominal gdpmp", "gdpmp");
 		mappingIndicateurs.put("PIB Réel rgdpmp", "rgdpmp");
-		mappingIndicateurs.put("Exportations Nominales Agrégées totexp", "totexp");
+		mappingIndicateurs.put("Exportations Nominales Agrégées totExp", "totExp");
 		mappingIndicateurs.put("Importations Nominales Agrégées totimp", "totimp");
-		mappingIndicateurs.put("Exportations Réelles Agrégées : rtotexp", "rtotexp");
+		mappingIndicateurs.put("Exportations Réelles Agrégées : rTotExp", "rTotExp");
 		mappingIndicateurs.put("Importations Réelles Agrégées rtotimp", "rtotimp");
 		mappingIndicateurs.put("Consommation Privée Réelle : xfd (h-hhld)", "xfd");
 		mappingIndicateurs.put("Consommation Publique Réelle : xfd (g-govt)", "xfd");
@@ -134,7 +134,7 @@ public class ResultatsPage extends JPanel {
 
 		// Composantes du PIB Nominal (premier dans l'image)
 		List<String> pibNominalList = new ArrayList<>();
-		pibNominalList.add("Exportations Nominales Agrégées totexp");
+		pibNominalList.add("Exportations Nominales Agrégées totExp");
 		pibNominalList.add("Importations Nominales Agrégées totimp");
 		groupeIndicateurs.put("Composantes du PIB Nominal", pibNominalList);
 
@@ -142,7 +142,7 @@ public class ResultatsPage extends JPanel {
 		List<String> pibReelList = new ArrayList<>();
 		pibReelList.add("Consommation Privée Réelle : xfd (h-hhld)");
 		pibReelList.add("Consommation Publique Réelle : xfd (g-govt)");
-		pibReelList.add("Exportations Réelles Agrégées : rtotexp");
+		pibReelList.add("Exportations Réelles Agrégées : rTotExp");
 		pibReelList.add("Importations Réelles Agrégées rtotimp");
 		pibReelList.add("Investissement Privé Réel : xfd (i-invt)");
 		pibReelList.add("Investissement Public Réel : xfd (i-ginv)");
@@ -244,9 +244,9 @@ public class ResultatsPage extends JPanel {
 
 			// DÉBOGAGE SPÉCIAL POUR TOTEXP
 			// Dans la méthode chargerDonnees, remplacer la boucle problématique par:
-			if (symbolesTrouves.contains("totexp")) {
+			if (symbolesTrouves.contains("totExp")) {
 				System.out.println("DÉBUG TOTEXP: Structure du symbole dans GDX");
-				GAMSSymbol sym = dbBAU.getSymbol("totexp");
+				GAMSSymbol sym = dbBAU.getSymbol("totExp");
 				if (sym != null) {
 					System.out.println("Type: " + sym.getClass().getSimpleName());
 					System.out.println("Nombre d'enregistrements: " + sym.getNumberOfRecords());
@@ -287,7 +287,7 @@ public class ResultatsPage extends JPanel {
 
 				try {
 					// Pour "totexp" - essayer d'abord comme variable puis comme paramètre si nécessaire
-					if (indicateur.contains("totexp")) {
+					if (indicateur.contains("totExp")) {
 						Map<String, double[]> donneesBAU = chargerSymbole(dbBAU, symboleGDX);
 						Map<String, double[]> donneesPI = chargerSymbole(dbPI, symboleGDX);
 						Map<String, double[]> donneesPIPLUS = chargerSymbole(dbPIPLUS, symboleGDX);
