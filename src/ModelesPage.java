@@ -206,49 +206,60 @@ public class ModelesPage extends JPanel {
 
 		executionDialog = new JDialog(parent, "Exécution GAMS", true);
 		executionDialog.setLayout(new BorderLayout());
-		executionDialog.setSize(700, 500);
+		executionDialog.setSize(500, 300);
 		executionDialog.setLocationRelativeTo(this);
-		executionDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);  // Gérer la fermeture manuellement
+		executionDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-		// En-tête
+		// En-tête avec icône animée
 		JPanel dialogHeaderPanel = new JPanel(new BorderLayout());
 		dialogHeaderPanel.setBackground(PRIMARY_COLOR);
-		dialogHeaderPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
+		dialogHeaderPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-		JLabel dialogTitle = new JLabel("Journal d'Exécution GAMS");
+		JLabel dialogTitle = new JLabel("Exécution en cours...");
 		dialogTitle.setFont(headerFont);
 		dialogTitle.setForeground(Color.WHITE);
-		dialogTitle.setIcon(UIManager.getIcon("Tree.openIcon"));
+		dialogTitle.setIcon(createLoadingIcon());
 		dialogHeaderPanel.add(dialogTitle, BorderLayout.WEST);
 
-		// Zone de texte pour les sorties
-		dialogOutputArea = new JTextArea();
-		dialogOutputArea.setEditable(false);
-		dialogOutputArea.setFont(new Font("Consolas", Font.PLAIN, 13));
-		dialogOutputArea.setBackground(new Color(40, 44, 52));
-		dialogOutputArea.setForeground(new Color(171, 178, 191));
-		dialogOutputArea.setMargin(new Insets(PADDING, PADDING, PADDING, PADDING));
+		// Panel central avec sablier et message
+		JPanel centerPanel = new JPanel();
+		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+		centerPanel.setBackground(CARD_COLOR);
+		centerPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-		JScrollPane dialogScrollPane = new JScrollPane(dialogOutputArea);
-		dialogScrollPane.setBorder(null);
+		// Message de statut principal
+		dialogStatusLabel = new JLabel("Initialisation...");
+		dialogStatusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+		dialogStatusLabel.setForeground(TEXT_COLOR);
+		dialogStatusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		// Panneau de statut
-		dialogStatusPanel = new JPanel(new BorderLayout(10, 0));
-		dialogStatusPanel.setBackground(CARD_COLOR);
-		dialogStatusPanel.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-
-		dialogStatusLabel = new JLabel("Exécution en cours...");
-		dialogStatusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-		dialogStatusLabel.setForeground(SECONDARY_COLOR);
-
+		// Barre de progression indéterminée (sablier)
 		dialogProgressBar = new JProgressBar();
 		dialogProgressBar.setIndeterminate(true);
 		dialogProgressBar.setForeground(ACCENT_COLOR);
 		dialogProgressBar.setBackground(CARD_COLOR);
 		dialogProgressBar.setBorderPainted(false);
+		dialogProgressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
+		dialogProgressBar.setMaximumSize(new Dimension(300, 25));
 
-		dialogStatusPanel.add(dialogStatusLabel, BorderLayout.WEST);
-		dialogStatusPanel.add(dialogProgressBar, BorderLayout.CENTER);
+		// Zone de sortie minimale (cachée par défaut)
+		dialogOutputArea = new JTextArea(5, 40);
+		dialogOutputArea.setEditable(false);
+		dialogOutputArea.setFont(new Font("Consolas", Font.PLAIN, 11));
+		dialogOutputArea.setBackground(new Color(248, 248, 248));
+		dialogOutputArea.setForeground(new Color(100, 100, 100));
+		dialogOutputArea.setMargin(new Insets(5, 5, 5, 5));
+
+		JScrollPane miniScrollPane = new JScrollPane(dialogOutputArea);
+		miniScrollPane.setBorder(BorderFactory.createTitledBorder("Détails"));
+		miniScrollPane.setVisible(false); // Caché par défaut
+
+		centerPanel.add(Box.createVerticalGlue());
+		centerPanel.add(dialogStatusLabel);
+		centerPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+		centerPanel.add(dialogProgressBar);
+		centerPanel.add(Box.createVerticalGlue());
+		centerPanel.add(miniScrollPane);
 
 		// Panneau de boutons
 		JPanel dialogButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -256,15 +267,20 @@ public class ModelesPage extends JPanel {
 		dialogButtonPanel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(230, 230, 230)));
 
 		viewOutputButton = createStyledButton("Voir Détails", SECONDARY_COLOR);
-		closeDialogButton = createStyledButton("Fermer", PRIMARY_COLOR);
+		viewOutputButton.addActionListener(e -> {
+			miniScrollPane.setVisible(!miniScrollPane.isVisible());
+			viewOutputButton.setText(miniScrollPane.isVisible() ? "Cacher Détails" : "Voir Détails");
+			executionDialog.revalidate();
+		});
+
+		closeDialogButton = createStyledButton("Annuler", WARNING_COLOR);
 
 		dialogButtonPanel.add(viewOutputButton);
 		dialogButtonPanel.add(closeDialogButton);
 
 		// Assembler la boîte de dialogue
 		executionDialog.add(dialogHeaderPanel, BorderLayout.NORTH);
-		executionDialog.add(dialogScrollPane, BorderLayout.CENTER);
-		executionDialog.add(dialogStatusPanel, BorderLayout.SOUTH);
+		executionDialog.add(centerPanel, BorderLayout.CENTER);
 		executionDialog.add(dialogButtonPanel, BorderLayout.SOUTH);
 
 		// Gérer les événements de la boîte de dialogue
@@ -272,7 +288,7 @@ public class ModelesPage extends JPanel {
 			if (processRunning) {
 				int response = JOptionPane.showConfirmDialog(
 						executionDialog,
-						"L'exécution est toujours en cours. Voulez-vous l'arrêter et fermer?",
+						"L'exécution est toujours en cours. Voulez-vous l'arrêter?",
 						"Confirmation",
 						JOptionPane.YES_NO_OPTION,
 						JOptionPane.WARNING_MESSAGE
@@ -298,35 +314,49 @@ public class ModelesPage extends JPanel {
 		executionDialog.addWindowListener(new java.awt.event.WindowAdapter() {
 			@Override
 			public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-				closeDialogButton.doClick();  // Utiliser la même logique que le bouton de fermeture
+				closeDialogButton.doClick();
 			}
 		});
+	}
 
-		// Le bouton "Voir Détails" sera implémenté plus tard pour afficher des détails supplémentaires
-		viewOutputButton.addActionListener(e -> {
-			// Afficher une boîte de dialogue avec le journal complet
-			JTextArea fullLogArea = new JTextArea(outputBuffer.toString());
-			fullLogArea.setEditable(false);
-			fullLogArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+	// Créer une icône de chargement simple
+	private Icon createLoadingIcon() {
+		return new Icon() {
+			@Override
+			public void paintIcon(Component c, Graphics g, int x, int y) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			JScrollPane logScrollPane = new JScrollPane(fullLogArea);
-			logScrollPane.setPreferredSize(new Dimension(800, 600));
+				// Dessiner un cercle qui tourne
+				long time = System.currentTimeMillis();
+				double angle = (time % 2000) * Math.PI / 1000; // Rotation complète en 2 secondes
 
-			JDialog logDialog = new JDialog(executionDialog, "Journal d'exécution complet", true);
-			logDialog.setLayout(new BorderLayout());
-			logDialog.add(logScrollPane, BorderLayout.CENTER);
+				g2d.setColor(Color.WHITE);
+				g2d.setStroke(new BasicStroke(2));
 
-			JButton closeLogButton = createStyledButton("Fermer", PRIMARY_COLOR);
-			closeLogButton.addActionListener(event -> logDialog.dispose());
+				// Dessiner des arcs pour simuler un chargement
+				for (int i = 0; i < 8; i++) {
+					double a = angle + i * Math.PI / 4;
+					int alpha = (int) (255 * (1 - i / 8.0));
+					g2d.setColor(new Color(255, 255, 255, alpha));
 
-			JPanel logButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			logButtonPanel.add(closeLogButton);
-			logDialog.add(logButtonPanel, BorderLayout.SOUTH);
+					int px = x + 8 + (int) (6 * Math.cos(a));
+					int py = y + 8 + (int) (6 * Math.sin(a));
+					g2d.fillOval(px - 1, py - 1, 2, 2);
+				}
 
-			logDialog.pack();
-			logDialog.setLocationRelativeTo(executionDialog);
-			logDialog.setVisible(true);
-		});
+				g2d.dispose();
+
+				// Redessiner pour animation
+				SwingUtilities.invokeLater(() -> c.repaint());
+			}
+
+			@Override
+			public int getIconWidth() { return 16; }
+
+			@Override
+			public int getIconHeight() { return 16; }
+		};
 	}
 
 	private JButton createStyledButton(String text, Color color) {
@@ -641,22 +671,21 @@ public class ModelesPage extends JPanel {
 			if (checkGamsExecutable() && validateYearRange()) {
 				updateOptIncFile();
 
-				int endYear = (Integer) endYearSpinner.getValue();
-
 				// Réinitialiser la zone de sortie et le buffer
 				dialogOutputArea.setText("");
 				outputBuffer.setLength(0);
 
+				// Afficher la boîte de dialogue d'exécution avec sablier
+				showExecutionDialog("Compilation GAMS");
+
 				// Mise à jour UI
 				setProcessing(true, "Compilation en cours...");
 
-				// Exécuter GAMS en mode compilation, sans afficher le journal directement
+				// Exécuter GAMS en mode compilation
 				executorService.submit(() -> {
 					try {
-						// Option de compilation seulement
-						executeGamsWithoutTerminal(selectedGamsFilePath, "action=c", "Compilation GAMS");
+						executeGamsWithDialog(selectedGamsFilePath, "action=c", "Compilation");
 					} finally {
-						// Réactiver les boutons quand c'est terminé
 						SwingUtilities.invokeLater(() -> {
 							setProcessing(false, "Compilation terminée");
 						});
@@ -670,26 +699,52 @@ public class ModelesPage extends JPanel {
 			if (checkGamsExecutable() && validateYearRange()) {
 				updateOptIncFile();
 
-				int endYear = (Integer) endYearSpinner.getValue();
-
 				// Réinitialiser la zone de sortie et le buffer
 				dialogOutputArea.setText("");
 				outputBuffer.setLength(0);
 
+				// Afficher la boîte de dialogue d'exécution avec sablier
+				showExecutionDialog("Simulation GAMS");
+
 				// Mise à jour UI
 				setProcessing(true, "Simulation en cours...");
 
-				// Exécuter GAMS en mode exécution complète, sans afficher le journal directement
+				// Exécuter GAMS en mode exécution complète
 				executorService.submit(() -> {
 					try {
-						executeGamsWithoutTerminal(selectedGamsFilePath, "", "Simulation GAMS");
+						executeGamsWithDialog(selectedGamsFilePath, "", "Simulation");
 					} finally {
-						// Réactiver les boutons quand c'est terminé
 						SwingUtilities.invokeLater(() -> {
 							setProcessing(false, "Simulation terminée");
 						});
 					}
 				});
+			}
+		});
+	}
+
+	// Afficher la boîte de dialogue d'exécution
+	private void showExecutionDialog(String operationType) {
+		SwingUtilities.invokeLater(() -> {
+			dialogStatusLabel.setText("Préparation de " + operationType.toLowerCase() + "...");
+			dialogProgressBar.setIndeterminate(true);
+
+			// Réinitialiser l'affichage des détails
+			JScrollPane scrollPane = (JScrollPane) dialogOutputArea.getParent().getParent();
+			scrollPane.setVisible(false);
+			viewOutputButton.setText("Voir Détails");
+
+			executionDialog.setTitle(operationType + " - Exécution GAMS");
+			executionDialog.setVisible(true);
+		});
+	}
+
+	// Mettre à jour le statut de la boîte de dialogue
+	private void updateDialogStatus(String status, boolean showProgress) {
+		SwingUtilities.invokeLater(() -> {
+			if (executionDialog.isVisible()) {
+				dialogStatusLabel.setText(status);
+				dialogProgressBar.setIndeterminate(showProgress);
 			}
 		});
 	}
@@ -716,7 +771,10 @@ public class ModelesPage extends JPanel {
 
 	private void logToBuffer(String message) {
 		outputBuffer.append("[INFO] " + message + "\n");
-		dialogOutputArea.append("[INFO] " + message + "\n");
+		SwingUtilities.invokeLater(() -> {
+			dialogOutputArea.append("[INFO] " + message + "\n");
+			dialogOutputArea.setCaretPosition(dialogOutputArea.getDocument().getLength());
+		});
 	}
 
 	private boolean validateYearRange() {
@@ -926,9 +984,215 @@ public class ModelesPage extends JPanel {
 		}
 	}
 
+	// Méthode pour exécuter GAMS avec mise à jour de la boîte de dialogue
+	private void executeGamsWithDialog(String gamsFilePath, String additionalOptions, String operationType) {
+		try {
+			File workingDir = new File(gamsFilePath).getParentFile();
+			String fileName = new File(gamsFilePath).getName();
+
+			// Mettre à jour le statut
+			updateDialogStatus("Démarrage de " + operationType.toLowerCase() + "...", true);
+
+			// Log pour le buffer interne
+			logToBuffer("Exécution de la commande: " + gamsExecutablePath + " " + fileName);
+			logToBuffer("Dans le répertoire: " + workingDir.getAbsolutePath());
+			if (!additionalOptions.isEmpty()) {
+				logToBuffer("Avec les options: " + additionalOptions);
+			}
+
+			// Construire la commande GAMS
+			List<String> command = new ArrayList<>();
+			command.add(gamsExecutablePath);
+			command.add(fileName);
+
+			if (!additionalOptions.isEmpty()) {
+				command.add(additionalOptions);
+			}
+			command.add("lo=3");
+
+			ProcessBuilder processBuilder = new ProcessBuilder(command);
+			processBuilder.directory(workingDir);
+			processBuilder.redirectErrorStream(true);
+
+			StringBuilder fullCommand = new StringBuilder();
+			for (String part : processBuilder.command()) {
+				fullCommand.append(part).append(" ");
+			}
+			logToBuffer("Commande complète: " + fullCommand.toString());
+
+			// Mettre à jour le statut
+			updateDialogStatus(operationType + " en cours d'exécution...", true);
+
+			// Démarrer le processus
+			currentProcess = processBuilder.start();
+
+			// Thread pour lire la sortie du processus
+			Thread outputThread = new Thread(() -> {
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()))) {
+					String line;
+					while ((line = reader.readLine()) != null) {
+						final String outputLine = line;
+						outputBuffer.append(outputLine).append("\n");
+						SwingUtilities.invokeLater(() -> {
+							dialogOutputArea.append(outputLine + "\n");
+							dialogOutputArea.setCaretPosition(dialogOutputArea.getDocument().getLength());
+						});
+					}
+				} catch (IOException e) {
+					outputBuffer.append("[ERREUR] Erreur lors de la lecture de la sortie: " + e.getMessage() + "\n");
+				}
+			});
+			outputThread.setDaemon(true);
+			outputThread.start();
+
+			// Thread pour attendre la fin du processus
+			Thread waitThread = new Thread(() -> {
+				try {
+					int exitCode = currentProcess.waitFor();
+					outputThread.join(1000);
+
+					final String resultMessage = "Processus GAMS terminé avec le code: " + exitCode;
+					final String statusMessage = exitCode == 0 ?
+							operationType + " terminée avec succès" :
+							operationType + " terminée avec erreurs";
+
+					File lstFile = null;
+					if (exitCode == 0) {
+						lstFile = new File(workingDir, fileName.replace(".gms", ".lst"));
+						if (lstFile.exists()) {
+							outputBuffer.append("[INFO] Fichier de résultat créé: " + lstFile.getName() + "\n");
+							outputBuffer.append("[INFO] Chemin: " + lstFile.getAbsolutePath() + "\n");
+						}
+					}
+
+					final File finalLstFile = lstFile;
+					SwingUtilities.invokeLater(() -> {
+						// Cacher la boîte de dialogue d'exécution
+						executionDialog.setVisible(false);
+
+						// Afficher le message de résultat
+						if (exitCode == 0) {
+							Object[] options = {"Voir le journal d'exécution", "Ouvrir le fichier résultat", "Fermer"};
+
+							int choice = JOptionPane.showOptionDialog(
+									ModelesPage.this,
+									operationType + " terminée avec succès.\n" +
+											(finalLstFile != null && finalLstFile.exists() ?
+													"Un fichier de résultat a été créé à : \n" + finalLstFile.getAbsolutePath() : ""),
+									"Succès",
+									JOptionPane.YES_NO_CANCEL_OPTION,
+									JOptionPane.INFORMATION_MESSAGE,
+									null,
+									options,
+									options[2]
+							);
+
+							if (choice == 0) {
+								showExecutionLog(operationType);
+							} else if (choice == 1 && finalLstFile != null && finalLstFile.exists()) {
+								try {
+									Desktop.getDesktop().open(finalLstFile);
+								} catch (IOException ex) {
+									JOptionPane.showMessageDialog(
+											ModelesPage.this,
+											"Impossible d'ouvrir le fichier résultat : " + ex.getMessage(),
+											"Erreur",
+											JOptionPane.ERROR_MESSAGE
+									);
+								}
+							}
+						} else {
+							Object[] options = {"Voir le journal d'exécution", "Fermer"};
+
+							int choice = JOptionPane.showOptionDialog(
+									ModelesPage.this,
+									operationType + " terminée avec des erreurs.\n" +
+											"Code de sortie : " + exitCode,
+									"Erreur",
+									JOptionPane.YES_NO_OPTION,
+									JOptionPane.ERROR_MESSAGE,
+									null,
+									options,
+									options[1]
+							);
+
+							if (choice == 0) {
+								showExecutionLog(operationType);
+							}
+						}
+
+						statusLabel.setText(statusMessage);
+						statusLabel.setForeground(exitCode == 0 ? ACCENT_COLOR : ERROR_COLOR);
+
+						cleanupProcess(currentProcess);
+						currentProcess = null;
+						processRunning = false;
+					});
+
+				} catch (InterruptedException e) {
+					SwingUtilities.invokeLater(() -> {
+						executionDialog.setVisible(false);
+						outputBuffer.append("[ERREUR] Processus interrompu: " + e.getMessage() + "\n");
+						processRunning = false;
+						currentProcess = null;
+
+						JOptionPane.showMessageDialog(
+								ModelesPage.this,
+								"Le processus a été interrompu de manière inattendue.",
+								"Erreur",
+								JOptionPane.ERROR_MESSAGE
+						);
+					});
+				}
+			});
+			waitThread.setDaemon(true);
+			waitThread.start();
+
+		} catch (IOException e) {
+			final String errorMessage = "Erreur lors de l'exécution de GAMS: " + e.getMessage();
+			SwingUtilities.invokeLater(() -> {
+				// Cacher la boîte de dialogue d'exécution
+				executionDialog.setVisible(false);
+
+				outputBuffer.append("\n========== ERREUR D'EXÉCUTION ==========\n");
+				outputBuffer.append("[ERREUR] " + errorMessage + "\n");
+
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				String stackTrace = sw.toString();
+				outputBuffer.append("\nTrace d'erreur complète:\n")
+						.append("---------------------------------------\n")
+						.append(stackTrace)
+						.append("---------------------------------------\n");
+
+				Object[] options = {"Voir le journal d'exécution", "Fermer"};
+
+				int choice = JOptionPane.showOptionDialog(
+						ModelesPage.this,
+						"Une erreur s'est produite lors de l'exécution de GAMS:\n" + e.getMessage(),
+						"Erreur",
+						JOptionPane.YES_NO_OPTION,
+						JOptionPane.ERROR_MESSAGE,
+						null,
+						options,
+						options[1]
+				);
+
+				if (choice == 0) {
+					showExecutionLog(operationType);
+				}
+
+				statusLabel.setText("Erreur lors de l'exécution");
+				statusLabel.setForeground(ERROR_COLOR);
+
+				currentProcess = null;
+				processRunning = false;
+			});
+		}
+	}
+
 	// Méthode pour afficher le journal d'exécution à la demande
 	private void showExecutionLog(String operationType) {
-		// Création d'une boîte de dialogue pour afficher le journal
 		JDialog logDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
 				"Journal d'exécution - " + operationType, false);
 		logDialog.setLayout(new BorderLayout());
@@ -1001,232 +1265,6 @@ public class ModelesPage extends JPanel {
 
 		// Affichage
 		logDialog.setVisible(true);
-	}
-
-	// Méthode pour exécuter GAMS sans afficher le terminal
-	private void executeGamsWithoutTerminal(String gamsFilePath, String additionalOptions, String operationType) {
-		try {
-			File workingDir = new File(gamsFilePath).getParentFile();
-			String fileName = new File(gamsFilePath).getName();
-
-			// Log pour le buffer interne seulement (pas d'affichage dans un terminal visible)
-			logToBuffer("Exécution de la commande: " + gamsExecutablePath + " " + fileName);
-			logToBuffer("Dans le répertoire: " + workingDir.getAbsolutePath());
-			if (!additionalOptions.isEmpty()) {
-				logToBuffer("Avec les options: " + additionalOptions);
-			}
-
-			// Construire la commande GAMS
-			List<String> command = new ArrayList<>();
-
-			// Ajouter l'exécutable GAMS
-			command.add(gamsExecutablePath);
-
-			// Ajouter le nom du fichier
-			command.add(fileName);
-
-			// Ajouter les options supplémentaires si elles existent
-			if (!additionalOptions.isEmpty()) {
-				command.add(additionalOptions);
-			}
-
-			// Ajouter le niveau de journalisation
-			command.add("lo=3");
-
-			ProcessBuilder processBuilder = new ProcessBuilder(command);
-
-			// Définir le répertoire de travail
-			processBuilder.directory(workingDir);
-
-			// Rediriger les erreurs vers la sortie standard
-			processBuilder.redirectErrorStream(true);
-
-			// Afficher la commande complète pour le log interne
-			StringBuilder fullCommand = new StringBuilder();
-			for (String part : processBuilder.command()) {
-				fullCommand.append(part).append(" ");
-			}
-			final String commandString = fullCommand.toString();
-			logToBuffer("Commande complète: " + commandString);
-
-			// Démarrer le processus
-			currentProcess = processBuilder.start();
-
-			// Créer un thread pour lire la sortie du processus (mais sans l'afficher)
-			Thread outputThread = new Thread(() -> {
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(currentProcess.getInputStream()))) {
-					String line;
-					while ((line = reader.readLine()) != null) {
-						final String outputLine = line;
-						// Stocker dans le buffer sans afficher
-						outputBuffer.append(outputLine).append("\n");
-						dialogOutputArea.append(outputLine + "\n");
-					}
-				} catch (IOException e) {
-					outputBuffer.append("[ERREUR] Erreur lors de la lecture de la sortie: " + e.getMessage() + "\n");
-				}
-			});
-			outputThread.setDaemon(true);
-			outputThread.start();
-
-			// Attendre que le processus se termine dans un thread séparé
-			Thread waitThread = new Thread(() -> {
-				try {
-					int exitCode = currentProcess.waitFor();
-
-					// S'assurer que le thread de lecture de sortie est terminé
-					outputThread.join(1000);
-
-					// Préparer les messages de résultat
-					final String resultMessage = "Processus GAMS terminé avec le code: " + exitCode;
-					final String statusMessage = exitCode == 0 ?
-							operationType + " terminée avec succès" :
-							operationType + " terminée avec erreurs";
-
-					// Pour un processus réussi, récupérer l'information sur les fichiers de résultat
-					File lstFile = null;
-					if (exitCode == 0) {
-						lstFile = new File(workingDir, fileName.replace(".gms", ".lst"));
-						if (lstFile.exists()) {
-							outputBuffer.append("[INFO] Fichier de résultat créé: " + lstFile.getName() + "\n");
-							outputBuffer.append("[INFO] Chemin: " + lstFile.getAbsolutePath() + "\n");
-						}
-					}
-
-					// Afficher une boîte de dialogue de résultat
-					final File finalLstFile = lstFile;
-					SwingUtilities.invokeLater(() -> {
-						if (exitCode == 0) {
-							// Succès - afficher un message avec des options
-							Object[] options = {"Voir le journal d'exécution", "Ouvrir le fichier résultat", "Fermer"};
-
-							int choice = JOptionPane.showOptionDialog(
-									null,
-									operationType + " terminée avec succès.\n" +
-											(finalLstFile != null && finalLstFile.exists() ?
-													"Un fichier de résultat a été créé à : \n" + finalLstFile.getAbsolutePath() : ""),
-									"Succès",
-									JOptionPane.YES_NO_CANCEL_OPTION,
-									JOptionPane.INFORMATION_MESSAGE,
-									null,
-									options,
-									options[2]  // option par défaut: "Fermer"
-							);
-
-							if (choice == 0) {
-								// Afficher le journal d'exécution
-								showExecutionLog(operationType);
-							} else if (choice == 1 && finalLstFile != null && finalLstFile.exists()) {
-								// Ouvrir le fichier résultat
-								try {
-									Desktop.getDesktop().open(finalLstFile);
-								} catch (IOException ex) {
-									JOptionPane.showMessageDialog(
-											null,
-											"Impossible d'ouvrir le fichier résultat : " + ex.getMessage(),
-											"Erreur",
-											JOptionPane.ERROR_MESSAGE
-									);
-								}
-							}
-							// Pour l'option "Fermer", ne rien faire de plus
-						} else {
-							// Erreur - afficher un message avec option de voir le journal
-							Object[] options = {"Voir le journal d'exécution", "Fermer"};
-
-							int choice = JOptionPane.showOptionDialog(
-									null,
-									operationType + " terminée avec des erreurs.\n" +
-											"Code de sortie : " + exitCode,
-									"Erreur",
-									JOptionPane.YES_NO_OPTION,
-									JOptionPane.ERROR_MESSAGE,
-									null,
-									options,
-									options[1]  // option par défaut: "Fermer"
-							);
-
-							if (choice == 0) {
-								// Afficher le journal d'exécution
-								showExecutionLog(operationType);
-							}
-							// Pour l'option "Fermer", ne rien faire de plus
-						}
-
-						// Mettre à jour le statut dans l'interface principale
-						statusLabel.setText(statusMessage);
-						statusLabel.setForeground(exitCode == 0 ? ACCENT_COLOR : ERROR_COLOR);
-
-						// Libérer les ressources du processus
-						cleanupProcess(currentProcess);
-
-						// Réinitialiser les références
-						currentProcess = null;
-						processRunning = false;
-					});
-
-				} catch (InterruptedException e) {
-					SwingUtilities.invokeLater(() -> {
-						outputBuffer.append("[ERREUR] Processus interrompu: " + e.getMessage() + "\n");
-						processRunning = false;
-						currentProcess = null;
-
-						JOptionPane.showMessageDialog(
-								null,
-								"Le processus a été interrompu de manière inattendue.",
-								"Erreur",
-								JOptionPane.ERROR_MESSAGE
-						);
-					});
-				}
-			});
-			waitThread.setDaemon(true);
-			waitThread.start();
-
-		} catch (IOException e) {
-			final String errorMessage = "Erreur lors de l'exécution de GAMS: " + e.getMessage();
-			SwingUtilities.invokeLater(() -> {
-				// Stocker l'erreur dans le buffer
-				outputBuffer.append("\n========== ERREUR D'EXÉCUTION ==========\n");
-				outputBuffer.append("[ERREUR] " + errorMessage + "\n");
-
-				// Afficher la trace d'erreur complète dans le buffer
-				StringWriter sw = new StringWriter();
-				e.printStackTrace(new PrintWriter(sw));
-				String stackTrace = sw.toString();
-				outputBuffer.append("\nTrace d'erreur complète:\n")
-						.append("---------------------------------------\n")
-						.append(stackTrace)
-						.append("---------------------------------------\n");
-
-				// Afficher une boîte de dialogue d'erreur avec option de voir le journal
-				Object[] options = {"Voir le journal d'exécution", "Fermer"};
-
-				int choice = JOptionPane.showOptionDialog(
-						null,
-						"Une erreur s'est produite lors de l'exécution de GAMS:\n" + e.getMessage(),
-						"Erreur",
-						JOptionPane.YES_NO_OPTION,
-						JOptionPane.ERROR_MESSAGE,
-						null,
-						options,
-						options[1]  // option par défaut: "Fermer"
-				);
-
-				if (choice == 0) {
-					// Afficher le journal d'exécution
-					showExecutionLog(operationType);
-				}
-
-				// Mettre à jour le statut dans l'interface principale
-				statusLabel.setText("Erreur lors de l'exécution");
-				statusLabel.setForeground(ERROR_COLOR);
-
-				// Réinitialiser les références
-				currentProcess = null;
-				processRunning = false;
-			});
-		}
 	}
 
 	// Méthode pour terminer proprement un processus et ses flux
