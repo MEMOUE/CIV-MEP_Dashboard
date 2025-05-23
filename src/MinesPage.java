@@ -37,8 +37,8 @@ public class MinesPage extends JPanel {
 	private JPanel indicateursPanel;
 	private JScrollPane indicateursScroll;
 	private Map<String, List<String>> groupeIndicateurs;
-	private JPanel evolCompPanel;
 	private JPanel evolAnnPanel;
+	private JPanel differencePanel;
 	private String currentGroupe = "Vue d'Ensemble";
 	private String currentIndicateur = "";
 
@@ -813,15 +813,16 @@ public class MinesPage extends JPanel {
 		topSection.add(groupeSection, BorderLayout.WEST);
 		topSection.add(centralPanel, BorderLayout.CENTER);
 
-		// Section des graphiques (en bas)
+		// Section des graphiques (en bas) - MODIFICATION ICI
 		JPanel graphsSection = new JPanel(new GridLayout(1, 2, 10, 0));
 		graphsSection.setBackground(BACKGROUND_COLOR);
 
-		evolCompPanel = createGraphPanel("Evolutions comparées");
-		evolAnnPanel = createGraphPanel("Evolutions annuelles");
+		// GAUCHE: Évolutions annuelles, DROITE: Différence BAU PI
+		evolAnnPanel = createGraphPanel("Évolutions annuelles");
+		differencePanel = createGraphPanel("Différence BAU PI - BAU");
 
-		graphsSection.add(evolCompPanel);
 		graphsSection.add(evolAnnPanel);
+		graphsSection.add(differencePanel);
 
 		// Diviser l'espace avec un JSplitPane
 		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topSection, graphsSection);
@@ -966,10 +967,10 @@ public class MinesPage extends JPanel {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				if (title.equals("Evolutions comparées")) {
-					drawEvolutionsComparees(g);
-				} else {
+				if (title.equals("Évolutions annuelles")) {
 					drawEvolutionsAnnuelles(g);
+				} else if (title.equals("Différence BAU PI - BAU")) {
+					drawDifferenceBAUPI(g);
 				}
 			}
 		};
@@ -977,204 +978,6 @@ public class MinesPage extends JPanel {
 		panel.add(graphArea, BorderLayout.CENTER);
 
 		return panel;
-	}
-
-	private void drawEvolutionsComparees(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-		int width = g.getClipBounds().width;
-		int height = g.getClipBounds().height;
-
-		// Dessiner une grille en arrière-plan
-		g2d.setColor(new Color(220, 220, 220));
-		g2d.setStroke(new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-				10.0f, new float[] {2.0f}, 0.0f)); // Ligne pointillée pour la grille
-
-		// Lignes horizontales
-		for (int y = height - 50; y >= 20; y -= (height - 70) / 10) {
-			g2d.drawLine(50, y, width - 20, y);
-		}
-
-		// Lignes verticales
-		for (int x = 50; x <= width - 20; x += (width - 70) / 10) {
-			g2d.drawLine(x, 20, x, height - 50);
-		}
-
-		// Axes
-		g2d.setColor(Color.BLACK);
-		g2d.setStroke(new BasicStroke(1.0f));
-		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
-		g2d.drawLine(50, height - 50, 50, 20); // axe Y
-
-		// Récupérer les données de l'indicateur sélectionné
-		Map<String, Map<String, double[]>> donneesIndicateur = donnees.get(currentIndicateur);
-
-		if (donneesIndicateur == null || annees == null || annees.length == 0) {
-			// Pas de données disponibles
-			g2d.setColor(Color.RED);
-			g2d.drawString("Données non disponibles pour " + currentIndicateur, width/2 - 100, height/2);
-			return;
-		}
-
-		// Trouver le maximum pour l'échelle
-		double maxValue = 0;
-		if (optionBAU.isSelected() && donneesIndicateur.containsKey("BAU")) {
-			Map<String, double[]> bauData = donneesIndicateur.get("BAU");
-			if (bauData != null && bauData.containsKey("Level") && bauData.get("Level") != null) {
-				for (double val : bauData.get("Level")) {
-					maxValue = Math.max(maxValue, val);
-				}
-			}
-		}
-		if (optionBAUPI.isSelected() && donneesIndicateur.containsKey("PI")) {
-			Map<String, double[]> piData = donneesIndicateur.get("PI");
-			if (piData != null && piData.containsKey("Level") && piData.get("Level") != null) {
-				for (double val : piData.get("Level")) {
-					maxValue = Math.max(maxValue, val);
-				}
-			}
-		}
-		if (optionBAUPIPlus.isSelected() && donneesIndicateur.containsKey("PI_PLUS")) {
-			Map<String, double[]> piPlusData = donneesIndicateur.get("PI_PLUS");
-			if (piPlusData != null && piPlusData.containsKey("Level") && piPlusData.get("Level") != null) {
-				for (double val : piPlusData.get("Level")) {
-					maxValue = Math.max(maxValue, val);
-				}
-			}
-		}
-
-		if (maxValue == 0) {
-			g2d.setColor(Color.RED);
-			g2d.drawString("Aucune donnée à afficher pour les options sélectionnées", width/2 - 150, height/2);
-			return;
-		}
-
-		// Arrondir le maximum pour une meilleure échelle
-		maxValue = Math.ceil(maxValue * 1.1); // Ajouter 10% de marge
-
-		// Échelle
-		double scale = (height - 100) / maxValue;
-
-		// Largeur des barres - dépend du nombre d'années
-		int totalBarWidth = Math.max(1, (width - 120) / annees.length - 10);
-		int barWidth = Math.min(10, totalBarWidth / 3);
-		int barGap = Math.max(1, barWidth / 2);
-
-		// Dessiner les barres pour chaque année
-		for (int i = 0; i < annees.length; i++) {
-			int xPos = 60 + i * ((width - 120) / annees.length);
-			int barCount = 0;
-
-			// BAU
-			if (optionBAU.isSelected() && donneesIndicateur.containsKey("BAU")) {
-				Map<String, double[]> bauData = donneesIndicateur.get("BAU");
-				if (bauData != null && bauData.containsKey("Level") && bauData.get("Level") != null) {
-					double[] values = bauData.get("Level");
-					if (i < values.length) {
-						double val = values[i];
-						int barHeight = (int)(val * scale);
-						g2d.setColor(new Color(200, 0, 0)); // Rouge pour BAU
-						g2d.fillRect(xPos + barCount * (barWidth + barGap),
-								height - 50 - barHeight, barWidth, barHeight);
-						barCount++;
-					}
-				}
-			}
-
-			// BAU PI
-			if (optionBAUPI.isSelected() && donneesIndicateur.containsKey("PI")) {
-				Map<String, double[]> piData = donneesIndicateur.get("PI");
-				if (piData != null && piData.containsKey("Level") && piData.get("Level") != null) {
-					double[] values = piData.get("Level");
-					if (i < values.length) {
-						double val = values[i];
-						int barHeight = (int)(val * scale);
-						g2d.setColor(new Color(0, 0, 200)); // Bleu pour BAU PI
-						g2d.fillRect(xPos + barCount * (barWidth + barGap),
-								height - 50 - barHeight, barWidth, barHeight);
-						barCount++;
-					}
-				}
-			}
-
-			// BAU PI PLUS
-			if (optionBAUPIPlus.isSelected() && donneesIndicateur.containsKey("PI_PLUS")) {
-				Map<String, double[]> piPlusData = donneesIndicateur.get("PI_PLUS");
-				if (piPlusData != null && piPlusData.containsKey("Level") && piPlusData.get("Level") != null) {
-					double[] values = piPlusData.get("Level");
-					if (i < values.length) {
-						double val = values[i];
-						int barHeight = (int)(val * scale);
-						g2d.setColor(new Color(0, 150, 0)); // Vert pour BAU PI PLUS
-						g2d.fillRect(xPos + barCount * (barWidth + barGap),
-								height - 50 - barHeight, barWidth, barHeight);
-					}
-				}
-			}
-		}
-
-		// Étiquettes années (afficher seulement certaines années pour éviter l'encombrement)
-		g2d.setColor(Color.BLACK);
-		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		int skipFactor = Math.max(1, annees.length / 10); // Afficher environ 10 étiquettes
-		for (int i = 0; i < annees.length; i += skipFactor) {
-			int xPos = 60 + i * ((width - 120) / annees.length);
-			g2d.drawString(annees[i], xPos, height - 35);
-		}
-
-		// Légende encadrée
-		int legendX = 60;
-		int legendY = 15;
-		int legendWidth = 180;
-		int legendHeight = 65;
-
-		// Rectangle de fond pour la légende
-		g2d.setColor(new Color(255, 255, 255, 200)); // Blanc semi-transparent
-		g2d.fillRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
-		g2d.setColor(Color.BLACK);
-		g2d.drawRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
-
-		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
-
-		if (optionBAU.isSelected()) {
-			g2d.setColor(new Color(200, 0, 0)); // Rouge pour BAU
-			g2d.fillRect(legendX, legendY - 8, 10, 10);
-			g2d.setColor(Color.BLACK);
-			g2d.drawString("BAU", legendX + 15, legendY);
-			legendY += 20;
-		}
-
-		if (optionBAUPI.isSelected()) {
-			g2d.setColor(new Color(0, 0, 200)); // Bleu pour BAU PI
-			g2d.fillRect(legendX, legendY - 8, 10, 10);
-			g2d.setColor(Color.BLACK);
-			g2d.drawString("BAU PI", legendX + 15, legendY);
-			legendY += 20;
-		}
-
-		if (optionBAUPIPlus.isSelected()) {
-			g2d.setColor(new Color(0, 150, 0)); // Vert pour BAU PI PLUS
-			g2d.fillRect(legendX, legendY - 8, 10, 10);
-			g2d.setColor(Color.BLACK);
-			g2d.drawString("BAU PI PLUS", legendX + 15, legendY);
-		}
-
-		// Titre de l'indicateur
-		g2d.setColor(Color.BLACK);
-		g2d.setFont(new Font("Arial", Font.BOLD, 10));
-		g2d.drawString(currentIndicateur, width - 280, 15);
-
-		// Dessiner les graduations sur l'axe Y
-		g2d.setColor(Color.BLACK);
-		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		int nbGraduations = 5;
-		for (int i = 0; i <= nbGraduations; i++) {
-			int y = height - 50 - (i * (height - 70) / nbGraduations);
-			g2d.drawLine(47, y, 50, y);
-			double valeur = (i * maxValue / nbGraduations);
-			g2d.drawString(String.format("%.1f", valeur), 10, y + 4);
-		}
 	}
 
 	private void drawEvolutionsAnnuelles(Graphics g) {
@@ -1467,6 +1270,222 @@ public class MinesPage extends JPanel {
 		}
 	}
 
+	// NOUVELLE MÉTHODE pour dessiner la différence réelle entre BAU PI et BAU
+	private void drawDifferenceBAUPI(Graphics g) {
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+		int width = g.getClipBounds().width;
+		int height = g.getClipBounds().height;
+
+		// Dessiner une grille en arrière-plan
+		g2d.setColor(new Color(220, 220, 220));
+		g2d.setStroke(new BasicStroke(0.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+				10.0f, new float[] {2.0f}, 0.0f));
+
+		// Lignes horizontales
+		for (int y = height - 50; y >= 20; y -= (height - 70) / 10) {
+			g2d.drawLine(50, y, width - 20, y);
+		}
+
+		// Lignes verticales
+		for (int x = 50; x <= width - 20; x += (width - 70) / 10) {
+			g2d.drawLine(x, 20, x, height - 50);
+		}
+
+		// Axes
+		g2d.setColor(Color.BLACK);
+		g2d.setStroke(new BasicStroke(1.0f));
+		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
+		g2d.drawLine(50, height - 50, 50, 20); // axe Y
+
+		// Récupérer les données de l'indicateur sélectionné
+		Map<String, Map<String, double[]>> donneesIndicateur = donnees.get(currentIndicateur);
+
+		if (donneesIndicateur == null || annees == null || annees.length == 0) {
+			g2d.setColor(Color.RED);
+			g2d.drawString("Données non disponibles pour " + currentIndicateur, width/2 - 100, height/2);
+			return;
+		}
+
+		// Vérifier que nous avons les données BAU et PI
+		if (!donneesIndicateur.containsKey("BAU") || !donneesIndicateur.containsKey("PI")) {
+			g2d.setColor(Color.RED);
+			g2d.drawString("Données BAU ou PI manquantes", width/2 - 80, height/2);
+			return;
+		}
+
+		Map<String, double[]> bauData = donneesIndicateur.get("BAU");
+		Map<String, double[]> piData = donneesIndicateur.get("PI");
+
+		if (bauData == null || piData == null ||
+				!bauData.containsKey("Level") || !piData.containsKey("Level") ||
+				bauData.get("Level") == null || piData.get("Level") == null) {
+			g2d.setColor(Color.RED);
+			g2d.drawString("Données Level manquantes", width/2 - 80, height/2);
+			return;
+		}
+
+		double[] valuesBAU = bauData.get("Level");
+		double[] valuesPI = piData.get("Level");
+
+		// Calculer la différence réelle (PI - BAU)
+		int numPoints = Math.min(Math.min(annees.length, valuesBAU.length), valuesPI.length);
+		double[] differences = new double[numPoints];
+
+		for (int i = 0; i < numPoints; i++) {
+			differences[i] = valuesPI[i] - valuesBAU[i];
+		}
+
+		if (numPoints == 0) {
+			g2d.setColor(Color.RED);
+			g2d.drawString("Aucune donnée commune trouvée", width/2 - 80, height/2);
+			return;
+		}
+
+		// Trouver les valeurs min et max pour l'échelle (peut être négative ou positive)
+		double minValue = differences[0];
+		double maxValue = differences[0];
+		for (double diff : differences) {
+			minValue = Math.min(minValue, diff);
+			maxValue = Math.max(maxValue, diff);
+		}
+
+		// Ajouter une marge
+		double range = maxValue - minValue;
+		if (range == 0) range = 1; // Éviter la division par zéro
+		minValue -= range * 0.1;
+		maxValue += range * 0.1;
+
+		// Calculer la position de la ligne zéro
+		double zeroLine = height - 50;
+		if (minValue < 0 && maxValue > 0) {
+			// Ligne zéro quelque part au milieu
+			zeroLine = height - 50 + (minValue * (height - 70)) / (minValue - maxValue);
+		} else if (maxValue <= 0) {
+			// Toutes les valeurs sont négatives, ligne zéro en haut
+			zeroLine = 20;
+		}
+		// Si minValue >= 0, ligne zéro reste en bas (height - 50)
+
+		// Dessiner la ligne zéro
+		g2d.setColor(Color.GRAY);
+		g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+				10.0f, new float[] {3.0f}, 0.0f));
+		g2d.drawLine(50, (int)zeroLine, width - 20, (int)zeroLine);
+
+		// Préparer les points pour la courbe
+		int[] pointsX = new int[numPoints];
+		int[] pointsY = new int[numPoints];
+
+		// Calculer les positions
+		for (int i = 0; i < numPoints; i++) {
+			pointsX[i] = 50 + i * ((width - 70) / Math.max(1, numPoints - 1));
+			// Échelle: convertir la différence en position Y
+			double normalizedValue = (differences[i] - minValue) / (maxValue - minValue);
+			pointsY[i] = height - 50 - (int)(normalizedValue * (height - 70));
+		}
+
+		// Dessiner la courbe de différence
+		g2d.setColor(new Color(255, 100, 0)); // Orange pour la différence
+		g2d.setStroke(new BasicStroke(3.0f)); // Ligne épaisse
+
+		// Tracer la ligne
+		for (int i = 0; i < numPoints - 1; i++) {
+			g2d.drawLine(pointsX[i], pointsY[i], pointsX[i+1], pointsY[i+1]);
+		}
+
+		// Ajouter les points avec des couleurs différentes selon le signe
+		for (int i = 0; i < numPoints; i++) {
+			if (differences[i] >= 0) {
+				g2d.setColor(new Color(0, 150, 0)); // Vert pour les valeurs positives
+			} else {
+				g2d.setColor(new Color(200, 0, 0)); // Rouge pour les valeurs négatives
+			}
+			g2d.fillOval(pointsX[i] - 4, pointsY[i] - 4, 8, 8);
+			g2d.setColor(Color.BLACK);
+			g2d.drawOval(pointsX[i] - 4, pointsY[i] - 4, 8, 8);
+		}
+
+		// Étiquettes années
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
+		int skipFactor = Math.max(1, numPoints / 10);
+		for (int i = 0; i < numPoints; i += skipFactor) {
+			if (i < annees.length) {
+				g2d.drawString(annees[i], pointsX[i] - 10, height - 35);
+			}
+		}
+
+		// Légende encadrée
+		int legendX = 60;
+		int legendY = 30;
+		int legendWidth = 200;
+		int legendHeight = 90;
+
+		// Rectangle de fond pour la légende
+		g2d.setColor(new Color(255, 255, 255, 200));
+		g2d.fillRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
+		g2d.setColor(Color.BLACK);
+		g2d.drawRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
+
+		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
+
+		// Ligne de différence
+		g2d.setColor(new Color(255, 100, 0));
+		g2d.setStroke(new BasicStroke(3.0f));
+		g2d.drawLine(legendX, legendY, legendX + 20, legendY);
+		g2d.setColor(Color.BLACK);
+		g2d.drawString("Différence (PI - BAU)", legendX + 25, legendY + 4);
+
+		legendY += 20;
+		// Point positif
+		g2d.setColor(new Color(0, 150, 0));
+		g2d.fillOval(legendX + 10 - 3, legendY - 3, 6, 6);
+		g2d.setColor(Color.BLACK);
+		g2d.drawString("Impact positif", legendX + 25, legendY + 4);
+
+		legendY += 20;
+		// Point négatif
+		g2d.setColor(new Color(200, 0, 0));
+		g2d.fillOval(legendX + 10 - 3, legendY - 3, 6, 6);
+		g2d.setColor(Color.BLACK);
+		g2d.drawString("Impact négatif", legendX + 25, legendY + 4);
+
+		legendY += 20;
+		// Ligne zéro
+		g2d.setColor(Color.GRAY);
+		g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+				10.0f, new float[] {3.0f}, 0.0f));
+		g2d.drawLine(legendX, legendY, legendX + 20, legendY);
+		g2d.setColor(Color.BLACK);
+		g2d.drawString("Aucun impact", legendX + 25, legendY + 4);
+
+		// Titre centré
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.BOLD, 12));
+		String titleText = "Impact de la PI sur " + currentIndicateur;
+		FontMetrics fm = g2d.getFontMetrics();
+		int titleWidth = fm.stringWidth(titleText);
+		// Tronquer le titre s'il est trop long
+		if (titleWidth > width - 40) {
+			titleText = "Impact de la PI";
+			titleWidth = fm.stringWidth(titleText);
+		}
+		g2d.drawString(titleText, (width - titleWidth) / 2, 15);
+
+		// Graduations sur l'axe Y
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
+		int nbGraduations = 5;
+		for (int i = 0; i <= nbGraduations; i++) {
+			int y = height - 50 - (i * (height - 70) / nbGraduations);
+			g2d.drawLine(47, y, 50, y);
+			double valeur = minValue + (i * (maxValue - minValue) / nbGraduations);
+			g2d.drawString(String.format("%.2f", valeur), 5, y + 4);
+		}
+	}
+
 	private void updateGraphiques(String groupe, String indicateur) {
 		System.out.println("Mise à jour des graphiques pour: " + groupe + " - " + indicateur);
 		System.out.println("Options: BAU=" + optionBAU.isSelected() +
@@ -1493,8 +1512,8 @@ public class MinesPage extends JPanel {
 		currentIndicateur = indicateur;
 
 		// Mettre à jour les graphiques
-		evolCompPanel.repaint();
 		evolAnnPanel.repaint();
+		differencePanel.repaint();
 	}
 
 	// Classe pour créer un layout avec des cellules de taille fixe
