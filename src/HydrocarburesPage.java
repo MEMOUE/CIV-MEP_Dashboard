@@ -621,38 +621,47 @@ public class HydrocarburesPage extends JPanel {
 			for (int i = 0; i < annees.length; i++) {
 				String periode = annees[i];
 
-				// Pour chaque activité d'hydrocarbure
+				// Pour chaque activité d'hydrocarbure (a-oil, a-gas, a-rafoil)
 				for (String activite : activites) {
-					// Le capital peut être représenté par différentes facteurs (cap)
-					// Essayer avec f-cap1, f-cap2, etc., ou simplement "cap" selon la structure du modèle
-					double valeurTotaleCapital = 0;
+					double valeurCapitalActivite = 0;
 
 					try {
-						// Essayer avec des indices spécifiques pour le capital
-						String[] indicesCapitaux = {"f-cap"};
-						for (String cap : indicesCapitaux) {
-							// Obtenir le prix relatif du capital
-							GAMSVariableRecord recPkPt = varPkPt.findRecord(activite, cap, periode);
-							double prixRelatif = (recPkPt != null) ? recPkPt.getLevel() : 0;
+						// Obtenir le prix relatif du capital pk_pt(a, v, t)
+						// Pour pk_pt : utiliser l'activité dans la colonne 'a', "Old" dans la colonne 'v'
+						GAMSVariableRecord recPkPt = varPkPt.findRecord(activite, "Old", periode);
+						double prixRelatif = (recPkPt != null) ? recPkPt.getLevel() : 0;
 
-							// Obtenir la quantité de capital
-							GAMSVariableRecord recXf = varXf.findRecord(activite, cap, periode);
-							double quantite = (recXf != null) ? recXf.getLevel() : 0;
+						// Obtenir la quantité de capital xf(a, fp, t)
+						// Pour xf : utiliser la même activité dans la colonne 'a', "f-capital" dans la colonne 'fp'
+						GAMSVariableRecord recXf = varXf.findRecord(activite, "f-capital", periode);
+						double quantite = (recXf != null) ? recXf.getLevel() : 0;
 
-							// Calculer la valeur
-							valeurTotaleCapital += prixRelatif * quantite;
-						}
+						// Calculer la valeur pour cette activité : pk_pt * xf
+						// Formule: (a-oil de pk_pt * a-oil de xf) + (a-gas de pk_pt * a-gas de xf) + (a-rafoil de pk_pt * a-rafoil de xf)
+						valeurCapitalActivite = prixRelatif * quantite;
+
+						System.out.println("Période " + periode + ", Activité " + activite +
+								": pk_pt(" + activite + ",Old," + periode + ")=" + prixRelatif +
+								", xf(" + activite + ",f-capital," + periode + ")=" + quantite +
+								", valeur=" + valeurCapitalActivite);
+
 					} catch (Exception e) {
-						System.out.println("Erreur lors du calcul du capital pour " + activite + ": " + e.getMessage());
-						// Si erreur, essayer une approche alternative selon la structure du modèle
+						System.out.println("Erreur lors du calcul du capital pour activité " + activite +
+								" en période " + periode + ": " + e.getMessage());
+						valeurCapitalActivite = 0;
 					}
 
-					valeurs[i] += valeurTotaleCapital;
+					// Ajouter à la valeur totale pour cette période
+					valeurs[i] += valeurCapitalActivite;
 				}
+
+				System.out.println("Valeur totale du capital pour période " + periode + ": " + valeurs[i]);
 			}
 
 			// Stocker les valeurs
 			resultat.put("Level", valeurs);
+
+			System.out.println("Chargement du capital terminé. Valeurs calculées: " + Arrays.toString(valeurs));
 
 		} catch (Exception e) {
 			System.out.println("Erreur lors du chargement du capital: " + e.getMessage());

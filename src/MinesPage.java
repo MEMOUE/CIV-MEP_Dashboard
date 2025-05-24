@@ -87,7 +87,7 @@ public class MinesPage extends JPanel {
 
 		// Pour les activités (secteurs) des mines
 		Map<String, String[]> mappingActivites = new HashMap<>();
-		mappingActivites.put("mines", new String[]{"a-gold", "a-oxt"});//TODO mise à jour à faire
+		mappingActivites.put("mines", new String[]{"a-gold", "a-oxt"});
 		mappingColonnes.put("a", mappingActivites);
 
 		// Pour les types de main d'oeuvre
@@ -135,11 +135,10 @@ public class MinesPage extends JPanel {
 			System.out.println("PI: " + piFile.getAbsolutePath() + " (existe: " + piFile.exists() + ")");
 			System.out.println("PI_PLUS: " + piPlusFile.getAbsolutePath() + " (existe: " + piPlusFile.exists() + ")");
 
-			if (!bauFile.exists() || !piFile.exists() || !piPlusFile.exists()) {
+			if (!bauFile.exists() || !piFile.exists()) {
 				JOptionPane.showMessageDialog(this,
-						"Un ou plusieurs fichiers GDX n'ont pas été trouvés.\nBAU: " + bauFile.getAbsolutePath() +
-								"\nPI: " + piFile.getAbsolutePath() +
-								"\nPI_PLUS: " + piPlusFile.getAbsolutePath(),
+						"Les fichiers BAU et PI sont requis.\nBAU: " + bauFile.getAbsolutePath() +
+								"\nPI: " + piFile.getAbsolutePath(),
 						"Erreur de chargement", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -147,13 +146,18 @@ public class MinesPage extends JPanel {
 			// Initialiser l'environnement GAMS
 			GAMSWorkspace ws = new GAMSWorkspace();
 
-			// Charger les trois bases de données
+			// Charger les bases de données (PI_PLUS est optionnel)
 			GAMSDatabase dbBAU = ws.addDatabaseFromGDX(GDX_BAU_PATH);
 			GAMSDatabase dbPI = ws.addDatabaseFromGDX(GDX_PI_PATH);
 			GAMSDatabase dbPIPLUS = null;
 
 			try {
-				dbPIPLUS = ws.addDatabaseFromGDX(GDX_PI_PLUS_PATH);
+				if (piPlusFile.exists()) {
+					dbPIPLUS = ws.addDatabaseFromGDX(GDX_PI_PLUS_PATH);
+					System.out.println("PI_PLUS chargé avec succès.");
+				} else {
+					System.out.println("PI_PLUS non disponible, continuons avec BAU et PI seulement.");
+				}
 			} catch (Exception e) {
 				System.out.println("Erreur lors du chargement de PI_PLUS: " + e.getMessage());
 				dbPIPLUS = null;
@@ -621,38 +625,33 @@ public class MinesPage extends JPanel {
 			for (int i = 0; i < annees.length; i++) {
 				String periode = annees[i];
 
-				// Pour chaque activité minière
+				// Pour chaque activité minière (a-gold et a-oxt)
 				for (String activite : activites) {
-					// Le capital peut être représenté par différentes facteurs (cap)
-					// Essayer avec f-cap1, f-cap2, etc., ou simplement "cap" selon la structure du modèle
-					double valeurTotaleCapital = 0;
-
 					try {
-						// Essayer avec des indices spécifiques pour le capital
-						String[] indicesCapitaux = {"f-cap"};
-						for (String cap : indicesCapitaux) {
-							// Obtenir le prix relatif du capital
-							GAMSVariableRecord recPkPt = varPkPt.findRecord(activite, cap, periode);
-							double prixRelatif = (recPkPt != null) ? recPkPt.getLevel() : 0;
+						// Pour pk_pt(a, v, t) : colonne a = activité minière, colonne v = "Old"
+						GAMSVariableRecord recPkPt = varPkPt.findRecord(activite, "Old", periode);
+						double prixRelatif = (recPkPt != null) ? recPkPt.getLevel() : 0;
 
-							// Obtenir la quantité de capital
-							GAMSVariableRecord recXf = varXf.findRecord(activite, cap, periode);
-							double quantite = (recXf != null) ? recXf.getLevel() : 0;
+						// Pour xf(a, fp, t) : colonne a = activité minière, colonne fp = "f-capital"
+						GAMSVariableRecord recXf = varXf.findRecord(activite, "f-capital", periode);
+						double quantite = (recXf != null) ? recXf.getLevel() : 0;
 
-							// Calculer la valeur
-							valeurTotaleCapital += prixRelatif * quantite;
-						}
+						// Calculer la valeur pour cette activité : pk_pt * xf
+						double valeurCapital = prixRelatif * quantite;
+						valeurs[i] += valeurCapital;
+
+						System.out.println("Capital pour " + activite + ", période " + periode +
+								": pk_pt=" + prixRelatif + " * xf=" + quantite + " = " + valeurCapital);
+
 					} catch (Exception e) {
-						System.out.println("Erreur lors du calcul du capital pour " + activite + ": " + e.getMessage());
-						// Si erreur, essayer une approche alternative selon la structure du modèle
+						System.out.println("Erreur lors du calcul du capital pour " + activite + ", période " + periode + ": " + e.getMessage());
 					}
-
-					valeurs[i] += valeurTotaleCapital;
 				}
 			}
 
 			// Stocker les valeurs
 			resultat.put("Level", valeurs);
+			System.out.println("Capital total calculé avec succès pour toutes les périodes");
 
 		} catch (Exception e) {
 			System.out.println("Erreur lors du chargement du capital: " + e.getMessage());
