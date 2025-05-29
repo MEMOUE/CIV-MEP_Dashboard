@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 import java.io.File;
@@ -1192,12 +1193,39 @@ public class MinesPage extends JPanel {
 			}
 		}
 
-		// Étiquettes années (afficher seulement certaines années pour éviter l'encombrement)
+		// Tirets sur l'axe des abscisses pour chaque date
+		g2d.setColor(Color.BLACK);
+		g2d.setStroke(new BasicStroke(1.0f));
+		for (int i = 0; i < annees.length; i++) {
+			// Dessiner un petit tiret vertical à chaque position de date
+			g2d.drawLine(pointsX[i], height - 50, pointsX[i], height - 47);
+		}
+
+		// Étiquettes années avec angle de 25°
 		g2d.setColor(Color.BLACK);
 		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		int skipFactor = Math.max(1, annees.length / 10); // Afficher environ 10 étiquettes
-		for (int i = 0; i < annees.length; i += skipFactor) {
-			g2d.drawString(annees[i], pointsX[i] - 10, height - 35);
+
+		// Sauvegarder la transformation actuelle
+		AffineTransform originalTransform = g2d.getTransform();
+
+		// Afficher TOUTES les dates avec rotation de 25°
+		for (int i = 0; i < annees.length; i++) {
+			// Position de base pour l'étiquette
+			int labelX = pointsX[i];
+			int labelY = height - 30;
+
+			// Sauvegarder la transformation pour cette étiquette
+			AffineTransform labelTransform = new AffineTransform(originalTransform);
+
+			// Appliquer la rotation de 25° (en radians) autour du point de l'étiquette
+			labelTransform.rotate(Math.toRadians(25), labelX, labelY);
+			g2d.setTransform(labelTransform);
+
+			// Dessiner l'étiquette
+			g2d.drawString(annees[i], labelX - 10, labelY);
+
+			// Restaurer la transformation originale pour la prochaine itération
+			g2d.setTransform(originalTransform);
 		}
 
 		// Légende encadrée
@@ -1367,11 +1395,7 @@ public class MinesPage extends JPanel {
 		}
 		// Si minValue >= 0, ligne zéro reste en bas (height - 50)
 
-		// Dessiner la ligne zéro
-		g2d.setColor(Color.GRAY);
-		g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-				10.0f, new float[] {3.0f}, 0.0f));
-		g2d.drawLine(50, (int)zeroLine, width - 20, (int)zeroLine);
+		// NE PLUS DESSINER LA LIGNE ZÉRO - SUPPRIMÉE
 
 		// Préparer les points pour la courbe
 		int[] pointsX = new int[numPoints];
@@ -1406,59 +1430,42 @@ public class MinesPage extends JPanel {
 			g2d.drawOval(pointsX[i] - 4, pointsY[i] - 4, 8, 8);
 		}
 
-		// Étiquettes années
+		// Tirets sur l'axe des abscisses pour chaque date
 		g2d.setColor(Color.BLACK);
-		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		int skipFactor = Math.max(1, numPoints / 10);
-		for (int i = 0; i < numPoints; i += skipFactor) {
-			if (i < annees.length) {
-				g2d.drawString(annees[i], pointsX[i] - 10, height - 35);
-			}
+		g2d.setStroke(new BasicStroke(1.0f));
+		for (int i = 0; i < numPoints; i++) {
+			// Dessiner un petit tiret vertical à chaque position de date
+			g2d.drawLine(pointsX[i], height - 50, pointsX[i], height - 47);
 		}
 
-		// Légende encadrée
-		int legendX = 60;
-		int legendY = 30;
-		int legendWidth = 200;
-		int legendHeight = 90;
-
-		// Rectangle de fond pour la légende
-		g2d.setColor(new Color(255, 255, 255, 200));
-		g2d.fillRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
+		// Étiquettes années avec angle de 25°
 		g2d.setColor(Color.BLACK);
-		g2d.drawRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
+		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
 
-		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
+		// Sauvegarder la transformation actuelle
+		AffineTransform originalTransform = g2d.getTransform();
 
-		// Ligne de différence
-		g2d.setColor(new Color(255, 100, 0));
-		g2d.setStroke(new BasicStroke(3.0f));
-		g2d.drawLine(legendX, legendY, legendX + 20, legendY);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Différence (PI - BAU)", legendX + 25, legendY + 4);
+		// Afficher TOUTES les dates avec rotation de 25°
+		for (int i = 0; i < numPoints && i < annees.length; i++) {
+			// Position de base pour l'étiquette
+			int labelX = pointsX[i];
+			int labelY = height - 30;
 
-		legendY += 20;
-		// Point positif
-		g2d.setColor(new Color(0, 150, 0));
-		g2d.fillOval(legendX + 10 - 3, legendY - 3, 6, 6);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Impact positif", legendX + 25, legendY + 4);
+			// Sauvegarder la transformation pour cette étiquette
+			AffineTransform labelTransform = new AffineTransform(originalTransform);
 
-		legendY += 20;
-		// Point négatif
-		g2d.setColor(new Color(200, 0, 0));
-		g2d.fillOval(legendX + 10 - 3, legendY - 3, 6, 6);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Impact négatif", legendX + 25, legendY + 4);
+			// Appliquer la rotation de 25° (en radians) autour du point de l'étiquette
+			labelTransform.rotate(Math.toRadians(25), labelX, labelY);
+			g2d.setTransform(labelTransform);
 
-		legendY += 20;
-		// Ligne zéro
-		g2d.setColor(Color.GRAY);
-		g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-				10.0f, new float[] {3.0f}, 0.0f));
-		g2d.drawLine(legendX, legendY, legendX + 20, legendY);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Aucun impact", legendX + 25, legendY + 4);
+			// Dessiner l'étiquette
+			g2d.drawString(annees[i], labelX - 10, labelY);
+
+			// Restaurer la transformation originale pour la prochaine itération
+			g2d.setTransform(originalTransform);
+		}
+
+		// SUPPRIMER LA LÉGENDE ICI - Plus de légende encadrée
 
 		// Titre centré
 		g2d.setColor(Color.BLACK);

@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.util.*;
 import java.util.List;
 import java.io.File;
@@ -1119,20 +1120,20 @@ public class EnergiePage extends JPanel {
 				10.0f, new float[] {2.0f}, 0.0f)); // Ligne pointillée pour la grille
 
 		// Lignes horizontales
-		for (int y = height - 50; y >= 20; y -= (height - 70) / 10) {
+		for (int y = height - 80; y >= 20; y -= (height - 100) / 10) {
 			g2d.drawLine(50, y, width - 20, y);
 		}
 
 		// Lignes verticales
 		for (int x = 50; x <= width - 20; x += (width - 70) / 10) {
-			g2d.drawLine(x, 20, x, height - 50);
+			g2d.drawLine(x, 20, x, height - 80);
 		}
 
 		// Axes
 		g2d.setColor(Color.BLACK);
 		g2d.setStroke(new BasicStroke(1.0f));
-		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
-		g2d.drawLine(50, height - 50, 50, 20); // axe Y
+		g2d.drawLine(50, height - 80, width - 20, height - 80); // axe X
+		g2d.drawLine(50, height - 80, 50, 20); // axe Y
 
 		// Récupérer les données de l'indicateur sélectionné
 		Map<String, Map<String, double[]>> donneesIndicateur = donnees.get(currentIndicateur);
@@ -1189,7 +1190,7 @@ public class EnergiePage extends JPanel {
 		maxValue = Math.ceil(maxValue * 1.1); // Ajouter 10% de marge
 
 		// Échelle
-		double scale = (height - 100) / maxValue;
+		double scale = (height - 130) / maxValue;
 
 		// Ajouter une zone ombrée entre BAU et BAU PI si les deux sont sélectionnés
 		if (optionBAU.isSelected() && optionBAUPI.isSelected() &&
@@ -1212,12 +1213,12 @@ public class EnergiePage extends JPanel {
 
 					// Ajouter les points de la courbe BAU PI
 					for (int i = 0; i < numPoints; i++) {
-						shadedArea.addPoint(pointsX[i], height - 50 - (int)(valuesBAUPI[i] * scale));
+						shadedArea.addPoint(pointsX[i], height - 80 - (int)(valuesBAUPI[i] * scale));
 					}
 
 					// Ajouter les points de la courbe BAU en ordre inverse
 					for (int i = numPoints - 1; i >= 0; i--) {
-						shadedArea.addPoint(pointsX[i], height - 50 - (int)(valuesBAU[i] * scale));
+						shadedArea.addPoint(pointsX[i], height - 80 - (int)(valuesBAU[i] * scale));
 					}
 
 					// Dessiner la zone ombrée
@@ -1240,7 +1241,7 @@ public class EnergiePage extends JPanel {
 				if (values.length > 0) {
 					int[] pointsY = new int[Math.min(annees.length, values.length)];
 					for (int i = 0; i < pointsY.length; i++) {
-						pointsY[i] = height - 50 - (int)(values[i] * scale);
+						pointsY[i] = height - 80 - (int)(values[i] * scale);
 					}
 
 					// Tracer la ligne
@@ -1268,7 +1269,7 @@ public class EnergiePage extends JPanel {
 				if (values.length > 0) {
 					int[] pointsY = new int[Math.min(annees.length, values.length)];
 					for (int i = 0; i < pointsY.length; i++) {
-						pointsY[i] = height - 50 - (int)(values[i] * scale);
+						pointsY[i] = height - 80 - (int)(values[i] * scale);
 					}
 
 					// Tracer la ligne
@@ -1297,7 +1298,7 @@ public class EnergiePage extends JPanel {
 				if (values.length > 0) {
 					int[] pointsY = new int[Math.min(annees.length, values.length)];
 					for (int i = 0; i < pointsY.length; i++) {
-						pointsY[i] = height - 50 - (int)(values[i] * scale);
+						pointsY[i] = height - 80 - (int)(values[i] * scale);
 					}
 
 					// Tracer la ligne
@@ -1319,12 +1320,33 @@ public class EnergiePage extends JPanel {
 			}
 		}
 
-		// Étiquettes années (afficher seulement certaines années pour éviter l'encombrement)
+		// Tirets sur l'axe des abscisses et étiquettes années - MODIFIÉ POUR AFFICHER TOUTES LES DATES AVEC ANGLE
 		g2d.setColor(Color.BLACK);
+		g2d.setStroke(new BasicStroke(1.0f));
 		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		int skipFactor = Math.max(1, annees.length / 10); // Afficher environ 10 étiquettes
-		for (int i = 0; i < annees.length; i += skipFactor) {
-			g2d.drawString(annees[i], pointsX[i] - 10, height - 35);
+
+		// Transformer pour incliner les étiquettes à 25°
+		AffineTransform originalTransform = g2d.getTransform();
+
+		for (int i = 0; i < annees.length; i++) {
+			// Position pour cette année
+			int x = pointsX[i];
+
+			// Dessiner le tiret sur l'axe des abscisses
+			g2d.drawLine(x, height - 80, x, height - 77);
+
+			int y = height - 65;
+
+			// Appliquer la rotation de 25°
+			AffineTransform rotatedTransform = new AffineTransform(originalTransform);
+			rotatedTransform.rotate(Math.toRadians(-25), x, y);
+			g2d.setTransform(rotatedTransform);
+
+			// Dessiner l'étiquette
+			g2d.drawString(annees[i], x - 5, y);
+
+			// Restaurer la transformation originale
+			g2d.setTransform(originalTransform);
 		}
 
 		// Légende encadrée
@@ -1389,14 +1411,14 @@ public class EnergiePage extends JPanel {
 		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
 		int nbGraduations = 5;
 		for (int i = 0; i <= nbGraduations; i++) {
-			int y = height - 50 - (i * (height - 70) / nbGraduations);
+			int y = height - 80 - (i * (height - 100) / nbGraduations);
 			g2d.drawLine(47, y, 50, y);
 			double valeur = (i * maxValue / nbGraduations);
 			g2d.drawString(String.format("%.1f", valeur), 10, y + 4);
 		}
 	}
 
-	// NOUVELLE MÉTHODE pour dessiner la différence réelle entre BAU PI et BAU
+	// NOUVELLE MÉTHODE pour dessiner la différence réelle entre BAU PI et BAU - SANS LÉGENDE
 	private void drawDifferenceBAUPI(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1410,20 +1432,20 @@ public class EnergiePage extends JPanel {
 				10.0f, new float[] {2.0f}, 0.0f));
 
 		// Lignes horizontales
-		for (int y = height - 50; y >= 20; y -= (height - 70) / 10) {
+		for (int y = height - 80; y >= 20; y -= (height - 100) / 10) {
 			g2d.drawLine(50, y, width - 20, y);
 		}
 
 		// Lignes verticales
 		for (int x = 50; x <= width - 20; x += (width - 70) / 10) {
-			g2d.drawLine(x, 20, x, height - 50);
+			g2d.drawLine(x, 20, x, height - 80);
 		}
 
 		// Axes
 		g2d.setColor(Color.BLACK);
 		g2d.setStroke(new BasicStroke(1.0f));
-		g2d.drawLine(50, height - 50, width - 20, height - 50); // axe X
-		g2d.drawLine(50, height - 50, 50, 20); // axe Y
+		g2d.drawLine(50, height - 80, width - 20, height - 80); // axe X
+		g2d.drawLine(50, height - 80, 50, 20); // axe Y
 
 		// Récupérer les données de l'indicateur sélectionné
 		Map<String, Map<String, double[]>> donneesIndicateur = donnees.get(currentIndicateur);
@@ -1483,22 +1505,18 @@ public class EnergiePage extends JPanel {
 		minValue -= range * 0.1;
 		maxValue += range * 0.1;
 
-		// Calculer la position de la ligne zéro
-		double zeroLine = height - 50;
+		// Calculer la position de la ligne zéro (mais ne pas la dessiner)
+		double zeroLine = height - 80;
 		if (minValue < 0 && maxValue > 0) {
 			// Ligne zéro quelque part au milieu
-			zeroLine = height - 50 + (minValue * (height - 70)) / (minValue - maxValue);
+			zeroLine = height - 80 + (minValue * (height - 100)) / (minValue - maxValue);
 		} else if (maxValue <= 0) {
 			// Toutes les valeurs sont négatives, ligne zéro en haut
 			zeroLine = 20;
 		}
-		// Si minValue >= 0, ligne zéro reste en bas (height - 50)
+		// Si minValue >= 0, ligne zéro reste en bas (height - 80)
 
-		// Dessiner la ligne zéro
-		g2d.setColor(Color.GRAY);
-		g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-				10.0f, new float[] {3.0f}, 0.0f));
-		g2d.drawLine(50, (int)zeroLine, width - 20, (int)zeroLine);
+		// LIGNE ZÉRO SUPPRIMÉE - Plus de ligne en tirets
 
 		// Préparer les points pour la courbe
 		int[] pointsX = new int[numPoints];
@@ -1509,7 +1527,7 @@ public class EnergiePage extends JPanel {
 			pointsX[i] = 50 + i * ((width - 70) / Math.max(1, numPoints - 1));
 			// Échelle: convertir la différence en position Y
 			double normalizedValue = (differences[i] - minValue) / (maxValue - minValue);
-			pointsY[i] = height - 50 - (int)(normalizedValue * (height - 70));
+			pointsY[i] = height - 80 - (int)(normalizedValue * (height - 100));
 		}
 
 		// Dessiner la courbe de différence
@@ -1533,59 +1551,38 @@ public class EnergiePage extends JPanel {
 			g2d.drawOval(pointsX[i] - 4, pointsY[i] - 4, 8, 8);
 		}
 
-		// Étiquettes années
+		// Tirets sur l'axe des abscisses et étiquettes années - MODIFIÉ POUR AFFICHER TOUTES LES DATES AVEC ANGLE
 		g2d.setColor(Color.BLACK);
+		g2d.setStroke(new BasicStroke(1.0f));
 		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
-		int skipFactor = Math.max(1, numPoints / 10);
-		for (int i = 0; i < numPoints; i += skipFactor) {
+
+		// Transformer pour incliner les étiquettes à 25°
+		AffineTransform originalTransform = g2d.getTransform();
+
+		for (int i = 0; i < numPoints; i++) {
 			if (i < annees.length) {
-				g2d.drawString(annees[i], pointsX[i] - 10, height - 35);
+				// Position pour cette année
+				int x = pointsX[i];
+
+				// Dessiner le tiret sur l'axe des abscisses
+				g2d.drawLine(x, height - 80, x, height - 77);
+
+				int y = height - 65;
+
+				// Appliquer la rotation de 25°
+				AffineTransform rotatedTransform = new AffineTransform(originalTransform);
+				rotatedTransform.rotate(Math.toRadians(-25), x, y);
+				g2d.setTransform(rotatedTransform);
+
+				// Dessiner l'étiquette
+				g2d.drawString(annees[i], x - 5, y);
+
+				// Restaurer la transformation originale
+				g2d.setTransform(originalTransform);
 			}
 		}
 
-		// Légende encadrée
-		int legendX = 60;
-		int legendY = 30;
-		int legendWidth = 200;
-		int legendHeight = 90;
-
-		// Rectangle de fond pour la légende
-		g2d.setColor(new Color(255, 255, 255, 200));
-		g2d.fillRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
-		g2d.setColor(Color.BLACK);
-		g2d.drawRect(legendX - 5, legendY - 15, legendWidth, legendHeight);
-
-		g2d.setFont(new Font("Arial", Font.PLAIN, 10));
-
-		// Ligne de différence
-		g2d.setColor(new Color(255, 100, 0));
-		g2d.setStroke(new BasicStroke(3.0f));
-		g2d.drawLine(legendX, legendY, legendX + 20, legendY);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Différence (PI - BAU)", legendX + 25, legendY + 4);
-
-		legendY += 20;
-		// Point positif
-		g2d.setColor(new Color(0, 150, 0));
-		g2d.fillOval(legendX + 10 - 3, legendY - 3, 6, 6);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Impact positif", legendX + 25, legendY + 4);
-
-		legendY += 20;
-		// Point négatif
-		g2d.setColor(new Color(200, 0, 0));
-		g2d.fillOval(legendX + 10 - 3, legendY - 3, 6, 6);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Impact négatif", legendX + 25, legendY + 4);
-
-		legendY += 20;
-		// Ligne zéro
-		g2d.setColor(Color.GRAY);
-		g2d.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
-				10.0f, new float[] {3.0f}, 0.0f));
-		g2d.drawLine(legendX, legendY, legendX + 20, legendY);
-		g2d.setColor(Color.BLACK);
-		g2d.drawString("Aucun impact", legendX + 25, legendY + 4);
+		// LÉGENDE SUPPRIMÉE - Plus de légende dans ce graphique
 
 		// Titre centré
 		g2d.setColor(Color.BLACK);
@@ -1605,7 +1602,7 @@ public class EnergiePage extends JPanel {
 		g2d.setFont(new Font("Arial", Font.PLAIN, 8));
 		int nbGraduations = 5;
 		for (int i = 0; i <= nbGraduations; i++) {
-			int y = height - 50 - (i * (height - 70) / nbGraduations);
+			int y = height - 80 - (i * (height - 100) / nbGraduations);
 			g2d.drawLine(47, y, 50, y);
 			double valeur = minValue + (i * (maxValue - minValue) / nbGraduations);
 			g2d.drawString(String.format("%.2f", valeur), 5, y + 4);
